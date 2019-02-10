@@ -1,1 +1,1 @@
-web: dotastatsWeb
+web: efeedWeb
