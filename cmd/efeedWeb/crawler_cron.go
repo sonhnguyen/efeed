@@ -10,7 +10,9 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 	if err != nil {
 		return err
 	}
-	
+	var animal = efeed.User{Name: "hello"}
+	a.db.Create(&animal)
+
 	fmt.Println(values)
 	return nil
 }

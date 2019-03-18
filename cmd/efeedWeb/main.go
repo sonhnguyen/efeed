@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/gorilla/sessions"
+	"github.com/jinzhu/gorm"
 	"github.com/kardianos/osext"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
@@ -29,6 +30,7 @@ type App struct {
 	logr   appLogger
 	config efeedConfig
 	store  *sessions.CookieStore
+	db     *efeed.DB
 }
 
 // globalPresenter contains the fields neccessary for presenting in all templates
@@ -39,7 +41,7 @@ type globalPresenter struct {
 }
 
 // TODO localPresenter if we have using template
-func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
+func SetupApp(r *Router, logger appLogger, templateDirectoryPath string, db *gorm.DB) *App {
 	var config efeedConfig
 	if viper.GetBool("isDevelopment") {
 		config = efeedConfig{
@@ -72,6 +74,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		gp:     gp,
 		logr:   logger,
 		config: config,
+		db:     db,
 	}
 }
 
@@ -80,12 +83,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot retrieve present working directory: %i", 0600, nil)
 	}
-	fmt.Println("hello")
 
 	err = LoadConfiguration(pwd)
 	if err != nil && os.Getenv("PORT") == "" {
 		log.Panicln("panicking, Fatal error config file: %s", err)
 	}
+	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 user=nhson dbname=efeed")
+	defer db.Close()
 
 	logr := newLogger()
 	r := NewRouter()
@@ -94,14 +98,13 @@ func main() {
 
 	// Add CORS support (Cross Origin Resource Sharing)
 	corsSetting := cors.New(cors.Options{
-		AllowedOrigins:   []string{"https://f10k.herokuapp.com", "http://efeed.me", "http://www.efeed.me", "http://localhost:3000", "https://efeed-client.herokuapp.com"},
+		AllowedOrigins:   []string{"http://efeed.me", "http://www.efeed.me", "http://localhost:3000", "https://efeed-client.herokuapp.com"},
 		AllowCredentials: true,
 	})
 	handler := corsSetting.Handler(r)
 	if a.config.IsDevelopment == "true" {
 		handler = cors.Default().Handler(r)
 	}
-	fmt.Println("hello")
 
 	c := cron.New()
 	_, err = c.AddFunc("@every 1s", func() {
@@ -114,6 +117,7 @@ func main() {
 		log.Println("error on cron job %s", err)
 	}
 	fmt.Println()
+
 	c.Start()
 	err = http.ListenAndServe(":"+a.config.Port, handler)
 	if err != nil {
