@@ -1,6 +1,7 @@
 module efeed
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/gorilla/context v1.1.1
 	github.com/gorilla/sessions v1.1.3
 	github.com/jinzhu/gorm v1.9.2
