@@ -70,7 +70,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		Description: "Api",
 		SiteURL:     "wtf",
 	}
-
+	fmt.Println(config.URI)
 	db, err := efeed.OpenDB(config.URI)
 	if err != nil {
 		log.Fatalln("cannot connect to db: ", err)

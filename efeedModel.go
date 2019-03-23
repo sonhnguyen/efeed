@@ -1,18 +1,11 @@
 package efeed
 
 import (
-	"time"
+	"github.com/jinzhu/gorm"
 )
 
-type Model struct {
-	ID        uint `gorm:"primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-}
-
+// User struct
 type User struct {
-	Model
-	ID   string
+	gorm.Model
 	Name string
 }
