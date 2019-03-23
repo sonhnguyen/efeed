@@ -1,6 +1,7 @@
 package main
 
 import (
+	"efeed"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kardianos/osext"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
@@ -30,7 +32,7 @@ type App struct {
 	logr   appLogger
 	config efeedConfig
 	store  *sessions.CookieStore
-	db     *efeed.DB
+	db     *gorm.DB
 }
 
 // globalPresenter contains the fields neccessary for presenting in all templates
@@ -40,8 +42,8 @@ type globalPresenter struct {
 	SiteURL     string
 }
 
-// TODO localPresenter if we have using template
-func SetupApp(r *Router, logger appLogger, templateDirectoryPath string, db *gorm.DB) *App {
+// SetupApp for main
+func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 	var config efeedConfig
 	if viper.GetBool("isDevelopment") {
 		config = efeedConfig{
@@ -69,6 +71,11 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string, db *gor
 		SiteURL:     "wtf",
 	}
 
+	db, err := efeed.OpenDB(config.URI)
+	if err != nil {
+		log.Fatalln("cannot connect to db: ", err)
+	}
+
 	return &App{
 		router: r,
 		gp:     gp,
@@ -81,20 +88,19 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string, db *gor
 func main() {
 	pwd, err := osext.ExecutableFolder()
 	if err != nil {
-		log.Fatalf("cannot retrieve present working directory: %i", 0600, nil)
+		log.Fatalln("cannot retrieve present working directory: ", 0600, nil)
 	}
 
 	err = LoadConfiguration(pwd)
 	if err != nil && os.Getenv("PORT") == "" {
-		log.Panicln("panicking, Fatal error config file: %s", err)
+		log.Panicln("panicking, Fatal error config file:", err)
 	}
-	db, err := gorm.Open("postgres", "host=127.0.0.1 port=5432 user=nhson dbname=efeed")
-	defer db.Close()
 
 	logr := newLogger()
 	r := NewRouter()
 
 	a := SetupApp(r, logr, "")
+	defer efeed.CloseDB()
 
 	// Add CORS support (Cross Origin Resource Sharing)
 	corsSetting := cors.New(cors.Options{
@@ -110,11 +116,11 @@ func main() {
 	_, err = c.AddFunc("@every 1s", func() {
 		err = a.RunCrawlerFanaticsAndSave()
 		if err != nil {
-			log.Println("error running RunCrawlerOpenDotaTeamAndSave %s", err)
+			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
 		}
 	})
 	if err != nil {
-		log.Println("error on cron job %s", err)
+		log.Println("error on cron job ", err)
 	}
 	fmt.Println()
 
