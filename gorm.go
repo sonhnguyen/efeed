@@ -13,7 +13,7 @@ var DB *gorm.DB
 // OpenDB new gorm connection
 func OpenDB(URI string) (*gorm.DB, error) {
 	var err error
-	DB, err := gorm.Open("postgres", URI)
+	DB, err = gorm.Open("postgres", URI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database")
 	}

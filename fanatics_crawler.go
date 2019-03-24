@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -57,6 +59,8 @@ func getRequest(url string, params FanaticAPIParams) (*http.Response, error) {
 
 func crawlProductDetailPageJSON(url string) (Product, error) {
 	var p Product
+	var sizes []string
+	var colors []string
 	resp, err := getRequest(url, FanaticAPIParams{})
 	if err != nil {
 		return Product{}, fmt.Errorf("error when crawling: %s", err)
@@ -72,7 +76,35 @@ func crawlProductDetailPageJSON(url string) (Product, error) {
 			log.Fatal(err)
 		}
 	})
+	doc.Find(".size-selector-list a").Each(func(i int, s *goquery.Selection) {
+		size := s.Text()
+		sizes = append(sizes, size)
+	})
+	priceStr := doc.Find(".price-tag div").First().Text()
+	price, err := removeCharactersExceptNumbers(priceStr)
+	if err != nil {
+		return Product{}, fmt.Errorf("error when removeCharactersExceptNumbers: %s", err)
+	}
+	p.Sizes = sizes
+	p.Price = price
+	doc.Find(".color-selector-list a").Each(func(i int, s *goquery.Selection) {
+		colorStr, _ := s.Attr("aria-label")
+		color := strings.Replace(colorStr, ", selected", "", -1)
+		colors = append(colors, color)
+	})
+	p.Colors = colors
+
 	return p, nil
+}
+
+func removeCharactersExceptNumbers(str string) (float64, error) {
+	re := regexp.MustCompile("[^0-9.]")
+	result := re.ReplaceAllString(str, "")
+	s, err := strconv.ParseFloat(result, 64)
+	if err != nil {
+		return 0, fmt.Errorf("erroring parsing float: %s", err)
+	}
+	return s, nil
 }
 
 func crawlProductsInListingPage(url string) ([]string, error) {
@@ -170,7 +202,6 @@ func crawlMainPageAndSave(targetURL string) error {
 	teamPages := extractTeamLinks(doc)
 	for _, teamPage := range teamPages {
 		var productsURLs []string
-		var teamProducts []Product
 
 		teamPage = BASE_URL + teamPage
 		productsLinks, err := crawlAllProductLinksOfTeam(teamPage)
@@ -181,16 +212,20 @@ func crawlMainPageAndSave(targetURL string) error {
 		fmt.Printf("beginning crawling product details of team %s, number of products: %d \n", teamPage, len(productsURLs))
 
 		for _, url := range productsURLs {
-			product, err := crawlProductDetailPageJSON(url)
-			if err != nil {
-				fmt.Println("error when product crawlMainPage: ", err)
-				continue
-			}
-			teamProducts = append(teamProducts, product)
-		}
+			var product Product
+			if DB.Where(&Product{URL: url}).First(&product).RecordNotFound() {
+				product, err := crawlProductDetailPageJSON(url)
+				if err != nil {
+					fmt.Println("error when product crawlMainPage: ", err)
+					continue
+				}
+				fmt.Println("saving product: ", product.URL)
 
-		fmt.Printf("crawled done team  %s, number of products: %d, saving. \n", teamPage, len(teamProducts))
-		DB.Create(&teamProducts)
+				DB.Create(&product)
+			} else {
+				fmt.Println("skipping: ", url)
+			}
+		}
 	}
 
 	return nil
