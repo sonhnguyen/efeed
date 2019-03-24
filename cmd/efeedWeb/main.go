@@ -15,7 +15,6 @@ import (
 	"github.com/kardianos/osext"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
-	cron "gopkg.in/robfig/cron.v2"
 )
 
 type efeedConfig struct {
@@ -112,19 +111,21 @@ func main() {
 		handler = cors.Default().Handler(r)
 	}
 
-	c := cron.New()
-	_, err = c.AddFunc("@every 1s", func() {
-		err = a.RunCrawlerFanaticsAndSave()
-		if err != nil {
-			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
-		}
-	})
-	if err != nil {
-		log.Println("error on cron job ", err)
-	}
-	fmt.Println()
+	// c := cron.New()
+	// _, err = c.AddFunc("@every 1s", func() {
+	// 	err = a.RunCrawlerFanaticsAndSave()
+	// 	if err != nil {
+	// 		log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
+	// 	}
+	// })
+	// if err != nil {
+	// 	log.Println("error on cron job ", err)
+	// }
+	// fmt.Println()
 
-	c.Start()
+	// c.Start()
+
+	a.RunCrawlerFanaticsAndSave()
 	err = http.ListenAndServe(":"+a.config.Port, handler)
 	if err != nil {
 		log.Println("error on serve server %s", err)

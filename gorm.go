@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/lib/pq"
 )
 
 // DB is gorm connection
@@ -17,11 +17,7 @@ func OpenDB(URI string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database")
 	}
-	DB.AutoMigrate(&User{})
-
-	DB.Create(&User{Name: "hello"})
-	fmt.Println("adsdsadsa", DB)
-
+	DB.AutoMigrate(&Product{})
 	return DB, nil
 }
 
