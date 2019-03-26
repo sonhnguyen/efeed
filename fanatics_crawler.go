@@ -186,11 +186,13 @@ func crawlMainPageAndSave(targetURL string) error {
 				fmt.Println("error when product crawlMainPage: ", err)
 				continue
 			}
+			//fmt.Println(product)
 			teamProducts = append(teamProducts, product)
 		}
 
 		fmt.Printf("crawled done team  %s, number of products: %d, saving. \n", teamPage, len(teamProducts))
-		DB.Create(&teamProducts)
+		//fmt.Println(teamProducts)
+		DB.Create(teamProducts)
 	}
 
 	return nil
