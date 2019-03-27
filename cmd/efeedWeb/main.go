@@ -13,6 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kardianos/osext"
+	"github.com/robfig/cron"
 	"github.com/rs/cors"
 	"github.com/spf13/viper"
 )
@@ -111,21 +112,21 @@ func main() {
 		handler = cors.Default().Handler(r)
 	}
 
-	// c := cron.New()
-	// _, err = c.AddFunc("@every 1s", func() {
-	// 	err = a.RunCrawlerFanaticsAndSave()
-	// 	if err != nil {
-	// 		log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
-	// 	}
-	// })
-	// if err != nil {
-	// 	log.Println("error on cron job ", err)
-	// }
-	// fmt.Println()
-
-	// c.Start()
-
 	a.RunCrawlerFanaticsAndSave()
+	c := cron.New()
+	err = c.AddFunc("@every 12h", func() {
+		err = a.RunCrawlerFanaticsAndSave()
+		if err != nil {
+			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
+		}
+	})
+	if err != nil {
+		log.Println("error on cron job ", err)
+	}
+	fmt.Println()
+
+	c.Start()
+
 	err = http.ListenAndServe(":"+a.config.Port, handler)
 	if err != nil {
 		log.Println("error on serve server %s", err)

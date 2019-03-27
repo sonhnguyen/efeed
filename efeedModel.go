@@ -12,12 +12,16 @@ type Product struct {
 	Brand       string         `json:"brand"`
 	Category    string         `json:"category"`
 	Description string         `json:"description"`
-	Images      pq.StringArray `gorm:"type:varchar(64)[]" json:"image"`
+	Images      pq.StringArray `gorm:"type:varchar(500)[]" json:"image"`
+	Sizes       pq.StringArray `gorm:"type:varchar(64)[]"`
+	Colors      pq.StringArray `gorm:"type:varchar(64)[]"`
 	Name        string         `json:"name"`
 	URL         string         `json:"url"`
-	Price       string         `json:"price"`
+	Price       float64        `json:"price"`
 	Type        string         `json:"@type"`
 	ProductID   string         `json:"productID"`
+	Tags        pq.StringArray `gorm:"type:varchar(64)[]"`
+	Ranking     int
 }
 
 // FanaticAPIParams FanaticAPIParams

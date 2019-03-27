@@ -1,0 +1,44 @@
+# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
+
+version: '3'
+
+# Define services
+services:
+
+  # App Service
+  app:
+    # Configuration for building the docker image for the service
+    build:
+      context: . # Use an image built from the specified dockerfile in the current directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: unless-stopped
+    depends_on: 
+      - db # This service depends on db. Start that first.
+    environment: # Pass environment variables to the service
+        PGHOST: db
+        PGDATABASE: postgres
+        PGUSER: postgres
+        PGPASSWORD: postgres
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - backend
+
+  # Redis Service   
+  db:
+    image: postgres:latest # Use a public Redis image to build the redis service    
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - database_data:/var/lib/postgresql/data
+
+# Networks to be created to facilitate communication between containers
+networks:
+  backend:    
+
+volumes:
+  database_data:
+    driver: local

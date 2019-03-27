@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/piprate/json-gold v0.2.0
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/robfig/cron v0.0.0-20180505203441-b41be1df6967
 	github.com/rs/cors v1.6.0
 	github.com/spf13/viper v1.3.2
 	gopkg.in/robfig/cron.v2 v2.0.0-20150107220207-be2e0b0deed5
