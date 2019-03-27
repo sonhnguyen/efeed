@@ -1,0 +1,8 @@
+FROM postgres:9.6
+
+# Install defaut editor
+RUN ["apt-get", "update"]
+RUN ["apt-get", "install", "-y", "vim"]
+
+COPY init-db.sh /docker-entrypoint-initdb.d/
+EXPOSE 5432
