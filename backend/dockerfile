@@ -1,24 +1,22 @@
-# Dockerfile References: https://docs.docker.com/engine/reference/builder/
-
-# Start from golang:1.11-alpine base image
+# build stage
 FROM golang:1.11 as builder
 
 ENV GO111MODULE=on
 
-# Add Maintainer Info
-LABEL maintainer="nhson <sonhnguyenn@gmail.com>"
+COPY . /go/src/efeed/backend
+WORKDIR /go/src/efeed/backend
 
-COPY . /app
-WORKDIR /app
+COPY go.mod /go/src/efeed/backend
+COPY go.sum /go/src/efeed/backend
 
-# Download all the dependencies
-# https://stackoverflow.com/questions/28031603/what-do-three-dots-mean-in-go-command-line-invocations
 RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 
+COPY . /go/src/efeed/backend
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o cmd/efeedWeb/efeedWeb ./cmd/efeedWeb/
+
+
+# final stage
 FROM scratch
-COPY --from=builder /app /app/
-WORKDIR /app
 EXPOSE 8080
-ENTRYPOINT ["/app"]
+ENTRYPOINT ["efeed/backend/cmd/efeedWeb"]

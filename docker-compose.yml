@@ -6,7 +6,7 @@ services:
       - ./database/pgdata:/pgdata
     container_name: efeed_database_c
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=efeed
       - POSTGRES_PASSWORD=efeed
@@ -16,7 +16,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/app
+      - ./backend:/go/src/efeed/backend
     container_name: efeed_backend_c
     ports:
       - "8080:8080"
