@@ -1,0 +1,8 @@
+{
+	"isDevelopment": "true",
+	"port": "3000",
+	"uri": "postgresql://localhost/efeed?user=nhson",
+	"isLocal":"true",
+	"uriLocal":"host=127.0.0.1 port=5432 user=nhson dbname=efeed sslmode=disable",
+	"collection": "dev"
+}
