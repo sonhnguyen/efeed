@@ -16,7 +16,7 @@ services:
     build:
       context: ./backend
     volumes:
-      - ./backend:/go/src/efeed_web/backend
+      - ./backend:/app
     container_name: efeed_backend_c
     ports:
       - "8080:8080"

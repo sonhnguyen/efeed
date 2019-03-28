@@ -1,23 +1,24 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
 # Start from golang:1.11-alpine base image
-FROM golang:1.11-alpine
+FROM golang:1.11 as builder
+
+ENV GO111MODULE=on
 
 # Add Maintainer Info
 LABEL maintainer="nhson <sonhnguyenn@gmail.com>"
 
-COPY . /go/src/efeed/backend
-WORKDIR /go/src/efeed/backend
+COPY . /app
+WORKDIR /app
 
 # Download all the dependencies
 # https://stackoverflow.com/questions/28031603/what-do-three-dots-mean-in-go-command-line-invocations
-RUN go get -d -v ./...
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 
-# Install the package
-RUN go install -v ./...
-
-# This container exposes port 8080 to the outside world
+FROM scratch
+COPY --from=builder /app /app/
+WORKDIR /app
 EXPOSE 8080
-
-# Run the executable
-CMD ["go-docker-compose"]
+ENTRYPOINT ["/app"]
