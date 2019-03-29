@@ -249,6 +249,7 @@ func crawlMainPageAndSave(category, targetURL string) error {
 			} else {
 				fmt.Println("skipping: ", product.URL)
 			}
+
 		}
 	}
 
