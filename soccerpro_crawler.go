@@ -52,12 +52,9 @@ func crawlProductDetails(p Product) (Product, error) {
 	})
 	fmt.Println("gg")
 	doc.Find(".value").Find("label").Find(".square").Each(func(i int, s *goquery.Selection) {
-		fmt.Println("hehe")
-		fmt.Println(s.Text())
 		p.Sizes = append(p.Sizes, s.Text())
 	})
 
-	//fmt.Println(p.Brand)
 	if err != nil {
 		return Product{}, fmt.Errorf("error when goquery: %s", err)
 	}
@@ -91,12 +88,6 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 		return []Product{}, fmt.Errorf("error when goquery crawlProductsInListingPage: %s", err)
 	}
 
-	/*totalProducts, err := strconv.Atoi(doc.Find(".page-count-quantity").Text())
-	if err != nil {
-		return []Product{}, fmt.Errorf("error when strconv crawlProductsInListingPage: %s", err)
-	}*/
-
-	//numberTotalCrawl := float64(1000)
 	max := 1
 	productsURL := []Product{}
 	doc.Find(".woocommerce-pagination").Find("a").Each(func(i int, s *goquery.Selection) {
@@ -110,7 +101,7 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 	for i := 1; i <= max; i++ {
 		target := url + "page" + strconv.Itoa(i) + "/" + OPTION
 		resp, err := getSoccerRequest(target)
-		//fmt.Println(target)
+
 		if err != nil {
 			return []Product{}, fmt.Errorf("error when get page %s", err)
 		}
@@ -122,16 +113,11 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 		doc.Find(".products.row").Find("a").Each(func(i int, s *goquery.Selection) {
 
 			link, _ := s.Attr("href")
-			fmt.Println(link)
-			fmt.Println("here")
 			productLink := Product{URL: link, Ranking: rank}
 			productsURL = append(productsURL, productLink)
 			rank++
 		})
 	}
-
-	//rank := 1
-	//currentPageNum := 1
 
 	return productsURL, nil
 }
@@ -139,33 +125,28 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 func RunCrawlerSoccerPro() error {
 
 	for _, element := range productCategoryURLs {
-		//fmt.Println(element)
+
 		foundURLs, _ := crawlProductsPage(element, OPTION)
 		productList = append(productList, foundURLs...)
 	}
 
-	var count = 0
 	for _, product := range productList {
 		var p Product
 		if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
 			product, err := crawlProductDetails(product)
 			if err != nil {
-				//fmt.Println("error when product crawlMainPage: ", err)
+
 				continue
 			}
-			fmt.Println("saving product: ", product.URL)
-			fmt.Println(count)
+			//fmt.Println("saving product: ", product.URL)
 
 			DB.Create(&product)
 
 		} else {
 
-			fmt.Println("skipping: ", product.URL)
-
-			fmt.Println(count)
+			//fmt.Println("skipping: ", product.URL)
 
 		}
-		count++
 
 	}
 	return nil

@@ -230,7 +230,7 @@ func crawlMainPageAndSave(category, targetURL string) error {
 		var productsURLs []Product
 		fmt.Println("here3")
 		teamPageURL = BASE_URL + teamPageURL
-		productsLinks, err := crawlAllProductinksOfTeam(teamPageURL)
+		productsLinks, err := crawlAllProductLinksOfTeam(teamPageURL)
 		if err != nil {
 			return fmt.Errorf("error when productsLinks crawlMainPage: %s", err)
 		}
