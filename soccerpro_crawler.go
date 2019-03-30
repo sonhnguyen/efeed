@@ -121,7 +121,7 @@ func crawlProductsPage(category, url, option string) ([]Product, error) {
 		doc.Find(".products.row").Find("a").Each(func(i int, s *goquery.Selection) {
 
 			link, _ := s.Attr("href")
-			productLink := Product{ProductURL: link, URL: link, Ranking: rank, Category: category, Tags: []string{category}}
+			productLink := Product{Site: "https://www.soccerpro.com", ProductURL: link, URL: link, Ranking: rank, Category: category, Tags: []string{category}}
 			productsURL = append(productsURL, productLink)
 			rank++
 		})

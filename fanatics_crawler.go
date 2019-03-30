@@ -87,14 +87,12 @@ func crawlProductDetailPageJSON(p Product) (Product, error) {
 			log.Fatal(err)
 		}
 	})
-	tags := p.Tags
-	tags = append(tags, p.Category)
-	tags = append(tags, p.Brand)
+	p.Tags = append(p.Tags, p.Category)
+	p.Tags = append(p.Tags, p.Brand)
 	doc.Find(".breadcrumbs-container li").Each(func(i int, s *goquery.Selection) {
 		breadcrumb := s.Text()
-		tags = append(tags, breadcrumb)
+		p.Tags = append(p.Tags, breadcrumb)
 	})
-	p.Tags = tags
 
 	doc.Find(".size-selector-list a").Each(func(i int, s *goquery.Selection) {
 		size := s.Text()
@@ -153,7 +151,7 @@ func crawlProductsInListingPage(gender, url string) ([]Product, error) {
 		doc.Find(".product-image-container").Find("a").Each(func(i int, s *goquery.Selection) {
 			link, _ := s.Attr("href")
 
-			productLink := Product{URL: BASE_URL + link, Ranking: rank}
+			productLink := Product{URL: BASE_URL + link, Ranking: rank, Site: "https://www.fanatics.com"}
 			productLink.Tags = append(productLink.Tags, gender)
 			productsURL = append(productsURL, productLink)
 			rank++
@@ -241,10 +239,7 @@ func crawlMainPageAndSave(category, targetURL string) error {
 					continue
 				}
 				fmt.Println("saving product: ", product.URL)
-				tags := product.Tags
-				tags = append(tags, category)
-				tags = append(tags, team)
-				product.Tags = tags
+				product.Tags = append(product.Tags, []string{category, team}...)
 				DB.Create(&product)
 			} else {
 				fmt.Println("skipping: ", product.URL)

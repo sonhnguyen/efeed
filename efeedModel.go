@@ -22,6 +22,7 @@ type Product struct {
 	ProductID   string         `json:"productID"`
 	Tags        pq.StringArray `gorm:"type:varchar(500)[]"`
 	Ranking     int
+	Site        string
 }
 
 // FanaticAPIParams FanaticAPIParams
