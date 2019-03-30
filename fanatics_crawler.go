@@ -80,7 +80,9 @@ func crawlProductDetailPageJSON(p Product) (Product, error) {
 	}
 
 	doc.Find(".json-ld-pdp").Each(func(i int, s *goquery.Selection) {
+
 		jsonString := s.Text()
+
 		if err := json.Unmarshal([]byte(jsonString), &p); err != nil {
 			log.Fatal(err)
 		}
@@ -196,7 +198,7 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 			genderAgeGroups[s.Text()] = res
 		})
 	}
-
+	//fmt.Println("here")
 	for gender, link := range genderAgeGroups {
 		productsListLink := BASE_URL + link
 		productsLinks, err := crawlProductsInListingPage(gender, productsListLink)
@@ -211,21 +213,24 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 }
 
 func crawlMainPageAndSave(category, targetURL string) error {
+	fmt.Println("here")
 	resp, err := getRequest(targetURL, FanaticAPIParams{})
 	if err != nil {
 		return fmt.Errorf("error when getRequest crawlMainPage: %s", err)
 	}
+
 	doc, err := goquery.NewDocumentFromResponse(resp)
 	if err != nil {
 		return fmt.Errorf("error when goquery crawlMainPage: %s", err)
 	}
 
 	teamPages := extractTeamLinks(doc)
+	fmt.Println(teamPages)
 	for team, teamPageURL := range teamPages {
 		var productsURLs []Product
-
+		fmt.Println("here3")
 		teamPageURL = BASE_URL + teamPageURL
-		productsLinks, err := crawlAllProductLinksOfTeam(teamPageURL)
+		productsLinks, err := crawlAllProductinksOfTeam(teamPageURL)
 		if err != nil {
 			return fmt.Errorf("error when productsLinks crawlMainPage: %s", err)
 		}

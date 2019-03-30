@@ -112,7 +112,9 @@ func main() {
 		handler = cors.Default().Handler(r)
 	}
 
-	a.RunCrawlerFanaticsAndSave()
+	//a.RunCrawlerFanaticsAndSave()
+	a.RunCrawlerSoccerProAndSave()
+	//fmt.Println("Running SoccerPro crawler")
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {
 		err = a.RunCrawlerFanaticsAndSave()
@@ -124,7 +126,6 @@ func main() {
 		log.Println("error on cron job ", err)
 	}
 	fmt.Println()
-
 	c.Start()
 
 	err = http.ListenAndServe(":"+a.config.Port, handler)
