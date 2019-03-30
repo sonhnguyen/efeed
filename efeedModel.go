@@ -20,7 +20,7 @@ type Product struct {
 	Price       float64        `json:"price"`
 	Type        string         `json:"@type"`
 	ProductID   string         `json:"productID"`
-	Tags        pq.StringArray `gorm:"type:varchar(64)[]"`
+	Tags        pq.StringArray `gorm:"type:varchar(500)[]"`
 	Ranking     int
 }
 

@@ -13,3 +13,12 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 
 	return nil
 }
+
+func (a *App) RunCrawlerSoccerProAndSave() error {
+	err := efeed.RunCrawlerSoccerPro()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
