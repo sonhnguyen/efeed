@@ -2,7 +2,6 @@ package main
 
 import (
 	"efeed"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -70,7 +69,6 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		Description: "Api",
 		SiteURL:     "wtf",
 	}
-	fmt.Println(config.URI)
 	db, err := efeed.OpenDB(config.URI)
 	if err != nil {
 		log.Fatalln("cannot connect to db: ", err)
@@ -112,9 +110,9 @@ func main() {
 		handler = cors.Default().Handler(r)
 	}
 
-	//a.RunCrawlerFanaticsAndSave()
-	a.RunCrawlerSoccerProAndSave()
-	//fmt.Println("Running SoccerPro crawler")
+	go a.RunCrawlerSoccerProAndSave()
+	go a.RunCrawlerFanaticsAndSave()
+
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {
 		err = a.RunCrawlerFanaticsAndSave()
@@ -125,7 +123,16 @@ func main() {
 	if err != nil {
 		log.Println("error on cron job ", err)
 	}
-	fmt.Println()
+	err = c.AddFunc("@every 12h", func() {
+		err = a.RunCrawlerSoccerProAndSave()
+		if err != nil {
+			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
+		}
+	})
+	if err != nil {
+		log.Println("error on cron job ", err)
+	}
+
 	c.Start()
 
 	err = http.ListenAndServe(":"+a.config.Port, handler)

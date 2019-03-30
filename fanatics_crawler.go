@@ -150,7 +150,6 @@ func crawlProductsInListingPage(gender, url string) ([]Product, error) {
 	currentPageNum := 1
 
 	for {
-		fmt.Println("crawling next page")
 		doc.Find(".product-image-container").Find("a").Each(func(i int, s *goquery.Selection) {
 			link, _ := s.Attr("href")
 
@@ -198,7 +197,6 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 			genderAgeGroups[s.Text()] = res
 		})
 	}
-	//fmt.Println("here")
 	for gender, link := range genderAgeGroups {
 		productsListLink := BASE_URL + link
 		productsLinks, err := crawlProductsInListingPage(gender, productsListLink)
@@ -213,7 +211,6 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 }
 
 func crawlMainPageAndSave(category, targetURL string) error {
-	fmt.Println("here")
 	resp, err := getRequest(targetURL, FanaticAPIParams{})
 	if err != nil {
 		return fmt.Errorf("error when getRequest crawlMainPage: %s", err)
@@ -225,10 +222,8 @@ func crawlMainPageAndSave(category, targetURL string) error {
 	}
 
 	teamPages := extractTeamLinks(doc)
-	fmt.Println(teamPages)
 	for team, teamPageURL := range teamPages {
 		var productsURLs []Product
-		fmt.Println("here3")
 		teamPageURL = BASE_URL + teamPageURL
 		productsLinks, err := crawlAllProductLinksOfTeam(teamPageURL)
 		if err != nil {

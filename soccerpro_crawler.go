@@ -37,8 +37,6 @@ func crawlProductDetails(p Product) (Product, error) {
 		con, _ := s.Attr("content")
 		if op == "product:price:amount" {
 			p.Price, _ = strconv.ParseFloat(con, 64)
-		} else if op == "og:brand" {
-			p.Brand = con
 		} else if op == "og:image" {
 			p.Images = append(p.Images, con)
 		} else if op == "og:type" {
@@ -50,11 +48,21 @@ func crawlProductDetails(p Product) (Product, error) {
 		}
 
 	})
-	fmt.Println("gg")
 	doc.Find(".value").Find("label").Find(".square").Each(func(i int, s *goquery.Selection) {
 		p.Sizes = append(p.Sizes, s.Text())
 	})
-
+	doc.Find(".woocommerce-breadcrumb .container span a").Each(func(i int, s *goquery.Selection) {
+		tags := p.Tags
+		tags = append(tags, s.Text())
+		p.Tags = tags
+	})
+	doc.Find("p.sku span").Each(func(i int, s *goquery.Selection) {
+		op, _ := s.Attr("itemprop")
+		if op == "brand" {
+			p.Brand = s.Text()
+		}
+	})
+	p.ProductURL = p.URL
 	if err != nil {
 		return Product{}, fmt.Errorf("error when goquery: %s", err)
 	}
@@ -76,7 +84,7 @@ func getSoccerRequest(url string) (*http.Response, error) {
 
 	return res, nil
 }
-func crawlProductsPage(url string, option string) ([]Product, error) {
+func crawlProductsPage(category, url, option string) ([]Product, error) {
 
 	resp, err := getSoccerRequest(url + option)
 	if err != nil {
@@ -113,7 +121,7 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 		doc.Find(".products.row").Find("a").Each(func(i int, s *goquery.Selection) {
 
 			link, _ := s.Attr("href")
-			productLink := Product{URL: link, Ranking: rank}
+			productLink := Product{ProductURL: link, URL: link, Ranking: rank, Category: category, Tags: []string{category}}
 			productsURL = append(productsURL, productLink)
 			rank++
 		})
@@ -122,11 +130,12 @@ func crawlProductsPage(url string, option string) ([]Product, error) {
 	return productsURL, nil
 }
 
+// RunCrawlerSoccerPro RunCrawlerSoccerPro
 func RunCrawlerSoccerPro() error {
+	fmt.Println("RunCrawlerSoccerPro:")
 
-	for _, element := range productCategoryURLs {
-
-		foundURLs, _ := crawlProductsPage(element, OPTION)
+	for category, element := range productCategoryURLs {
+		foundURLs, _ := crawlProductsPage(category, element, OPTION)
 		productList = append(productList, foundURLs...)
 	}
 
@@ -135,19 +144,12 @@ func RunCrawlerSoccerPro() error {
 		if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
 			product, err := crawlProductDetails(product)
 			if err != nil {
-
 				continue
 			}
-			//fmt.Println("saving product: ", product.URL)
-
+			fmt.Println("saving:", product.URL)
 			DB.Create(&product)
-
 		} else {
-
-			//fmt.Println("skipping: ", product.URL)
-
 		}
-
 	}
 	return nil
 }
