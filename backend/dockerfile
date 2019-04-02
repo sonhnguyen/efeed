@@ -1,22 +1,25 @@
-# build stage
-FROM golang:1.11 as builder
+FROM golang:1.11-alpine as builder
+
+RUN apk add --no-cache --virtual .build-deps \
+    bash \
+    gcc \
+    git \
+    musl-dev
+
+RUN mkdir build
+COPY . /build
+COPY go.mod /build
+WORKDIR /build
 
 ENV GO111MODULE=on
-
-COPY . /go/src/efeed/backend
-WORKDIR /go/src/efeed/backend
-
-COPY go.mod /go/src/efeed/backend
-COPY go.sum /go/src/efeed/backend
-
 RUN go mod download
 
-COPY . /go/src/efeed/backend
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o webserver .
+RUN adduser -S -D -H -h /build webserver
+USER webserver
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o cmd/efeedWeb/efeedWeb ./cmd/efeedWeb/
-
-
-# final stage
 FROM scratch
+COPY --from=builder /build/webserver /app/
+WORKDIR /app
 EXPOSE 8080
-ENTRYPOINT ["efeed/backend/cmd/efeedWeb"]
+CMD ["./webserver"]
