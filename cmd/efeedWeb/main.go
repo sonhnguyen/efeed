@@ -110,6 +110,8 @@ func main() {
 		handler = cors.Default().Handler(r)
 	}
 
+	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
+
 	go a.RunCrawlerSoccerProAndSave()
 	go a.RunCrawlerFanaticsAndSave()
 
@@ -137,7 +139,7 @@ func main() {
 
 	err = http.ListenAndServe(":"+a.config.Port, handler)
 	if err != nil {
-		log.Println("error on serve server %s", err)
+		log.Println("error on serve server", err)
 	}
 }
 

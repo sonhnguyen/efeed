@@ -5,6 +5,14 @@ import (
 	"github.com/lib/pq"
 )
 
+type ProductSearch struct {
+	Name     string
+	Tags     []string
+	Category string
+	Brand    string
+	Site     string
+}
+
 // Product struct
 type Product struct {
 	gorm.Model

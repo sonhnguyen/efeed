@@ -10,6 +10,7 @@ require (
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/julienschmidt/httprouter v1.2.0
+	github.com/justinas/alice v0.0.0-20171023064455-03f45bd4b7da
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/lib/pq v1.0.0
 	github.com/piprate/json-gold v0.2.0
