@@ -15,6 +15,7 @@ ENV GO111MODULE=on
 RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -a -installsuffix cgo -o webserver .
+RUN chmod +x webserver
 RUN adduser -S -D -H -h /build webserver
 USER webserver
 

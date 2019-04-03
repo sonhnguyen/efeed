@@ -6,7 +6,7 @@ services:
       - ./database/pgdata:/pgdata
     container_name: efeed_database_c
     ports:
-      - "5433:5432"
+      - "2020:5432"
     environment:
       - POSTGRES_USER=efeed
       - POSTGRES_PASSWORD=efeed
@@ -18,7 +18,7 @@ services:
     container_name: efeed_backend_c
     ports:
       - "8080:8080"
-    links:
+    depends_on:
       - database
 
   # frontend:

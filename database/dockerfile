@@ -5,4 +5,4 @@ RUN ["apt-get", "update"]
 RUN ["apt-get", "install", "-y", "vim"]
 
 COPY init-db.sh /docker-entrypoint-initdb.d/
-EXPOSE 5433
+EXPOSE 2020
