@@ -16,10 +16,10 @@ type ProductSearch struct {
 // Product struct
 type Product struct {
 	gorm.Model
-	ProductURL  string         `json:"@id"`
 	Brand       string         `json:"brand"`
 	Category    string         `json:"category"`
 	Description string         `json:"description"`
+	Details     pq.StringArray `gorm:"type:varchar(500)[]"`
 	Images      pq.StringArray `gorm:"type:varchar(500)[]" json:"image"`
 	Sizes       pq.StringArray `gorm:"type:varchar(64)[]"`
 	Colors      pq.StringArray `gorm:"type:varchar(64)[]"`

@@ -70,6 +70,7 @@ func getRequest(url string, params FanaticAPIParams) (*http.Response, error) {
 func crawlProductDetailPageJSON(p Product) (Product, error) {
 	var sizes []string
 	var colors []string
+	var details []string
 	resp, err := getRequest(p.URL, FanaticAPIParams{})
 	if err != nil {
 		return Product{}, fmt.Errorf("error when crawling: %s", err)
@@ -87,17 +88,23 @@ func crawlProductDetailPageJSON(p Product) (Product, error) {
 			log.Fatal(err)
 		}
 	})
-	p.Tags = append(p.Tags, p.Category)
-	p.Tags = append(p.Tags, p.Brand)
+	p.Tags = AppendIfMissing(p.Tags, p.Category)
+	p.Tags = AppendIfMissing(p.Tags, p.Brand)
 	doc.Find(".breadcrumbs-container li").Each(func(i int, s *goquery.Selection) {
 		breadcrumb := s.Text()
-		p.Tags = append(p.Tags, breadcrumb)
+		p.Tags = AppendIfMissing(p.Tags, breadcrumb)
 	})
 
 	doc.Find(".size-selector-list a").Each(func(i int, s *goquery.Selection) {
 		size := s.Text()
 		sizes = append(sizes, size)
 	})
+
+	doc.Find(".description-box-content li").Each(func(i int, s *goquery.Selection) {
+		detail := s.Text()
+		details = append(details, detail)
+	})
+
 	priceStr := doc.Find(".price-tag div").First().Text()
 	price, err := removeCharactersExceptNumbers(priceStr)
 	if err != nil {
@@ -105,6 +112,7 @@ func crawlProductDetailPageJSON(p Product) (Product, error) {
 	}
 	p.Sizes = sizes
 	p.Price = price
+	p.Details = details
 	doc.Find(".color-selector-list a").Each(func(i int, s *goquery.Selection) {
 		colorStr, _ := s.Attr("aria-label")
 		color := strings.Replace(colorStr, ", selected", "", -1)
@@ -152,7 +160,7 @@ func crawlProductsInListingPage(gender, url string) ([]Product, error) {
 			link, _ := s.Attr("href")
 
 			productLink := Product{URL: BASE_URL + link, Ranking: rank, Site: "https://www.fanatics.com"}
-			productLink.Tags = append(productLink.Tags, gender)
+			productLink.Tags = AppendIfMissing(productLink.Tags, gender)
 			productsURL = append(productsURL, productLink)
 			rank++
 		})
@@ -239,7 +247,8 @@ func crawlMainPageAndSave(category, targetURL string) error {
 					continue
 				}
 				fmt.Println("saving product: ", product.URL)
-				product.Tags = append(product.Tags, []string{category, team}...)
+				product.Tags = AppendIfMissing(product.Tags, category)
+				product.Tags = AppendIfMissing(product.Tags, team)
 				DB.Create(&product)
 			} else {
 				fmt.Println("skipping: ", product.URL)
@@ -271,4 +280,14 @@ func RunCrawlerFanatics() error {
 		}
 	}
 	return nil
+}
+
+// AppendIfMissing AppendIfMissing
+func AppendIfMissing(slice []string, str string) []string {
+	for _, ele := range slice {
+		if ele == str {
+			return slice
+		}
+	}
+	return append(slice, str)
 }
