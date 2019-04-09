@@ -1,6 +1,6 @@
 {
 	"isDevelopment": "true",
-	"port": "3000",
+	"port": "8080",
 	"uri": "postgresql://database/efeed?user=efeed",
 	"isLocal":"true",
 	"uriLocal":"host=database port=5432 user=efeed password=efeed dbname=efeed sslmode=disable",
