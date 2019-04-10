@@ -1,7 +1,7 @@
 {
-	"isDevelopment": "true",
-	"port": "8080",
-	"uri": "postgresql://database/efeed?user=efeed",
-	"isLocal":"true",
-	"uriLocal":"host=database port=5432 user=efeed password=efeed dbname=efeed sslmode=disable",
+    "isDevelopment": "true",
+    "port": "8080",
+    "uri": "postgresql://database/efeed?user=efeed",
+    "isLocal": "true",
+    "uriLocal": "host=database port=5432 user=efeed password=efeed dbname=efeed sslmode=disable",
 }
