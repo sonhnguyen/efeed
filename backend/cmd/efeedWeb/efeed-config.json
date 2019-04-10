@@ -3,5 +3,5 @@
     "port": "8080",
     "uri": "postgresql://database/efeed?user=efeed",
     "isLocal": "true",
-    "uriLocal": "host=database port=5432 user=efeed password=efeed dbname=efeed sslmode=disable",
+    "uriLocal": "host=localhost port=2020 user=efeed password=efeed dbname=efeed sslmode=disable"
 }
