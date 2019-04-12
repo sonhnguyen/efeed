@@ -1,12 +1,13 @@
 package main
 
 import (
-	"efeed"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"runtime"
+
+	"github.com/sonhnguyenn/cmd/crawler"
 
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -14,10 +15,9 @@ import (
 	"github.com/kardianos/osext"
 	"github.com/robfig/cron"
 	"github.com/rs/cors"
-	"github.com/spf13/viper"
 )
 
-type efeedConfig struct {
+type crawlerConfig struct {
 	Port          string
 	URI           string
 	Dbname        string
@@ -29,7 +29,7 @@ type App struct {
 	router *Router
 	gp     globalPresenter
 	logr   appLogger
-	config efeedConfig
+	config crawlerConfig
 	store  *sessions.CookieStore
 	db     *gorm.DB
 }
@@ -43,16 +43,16 @@ type globalPresenter struct {
 
 // SetupApp for main
 func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
-	var config efeedConfig
+	var config crawlerConfig
 	if viper.GetBool("isDevelopment") {
-		config = efeedConfig{
+		config = crawlerConfig{
 			IsDevelopment: viper.GetString("isDevelopment"),
 			Port:          viper.GetString("port"),
 			URI:           viper.GetString("uri"),
 			Dbname:        viper.GetString("dbname"),
 		}
 	} else {
-		config = efeedConfig{
+		config = crawlerConfig{
 			IsDevelopment: os.Getenv("isDevelopment"),
 			Port:          os.Getenv("PORT"),
 			URI:           os.Getenv("uri"),
@@ -69,7 +69,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		Description: "Api",
 		SiteURL:     "wtf",
 	}
-	db, err := efeed.OpenDB(config.URI)
+	db, err := crawler.OpenDB(config.URI)
 	if err != nil {
 		log.Fatalln("cannot connect to db: ", err)
 	}
@@ -98,7 +98,7 @@ func main() {
 	r := NewRouter()
 
 	a := SetupApp(r, logr, "")
-	defer efeed.CloseDB()
+	defer crawler.CloseDB()
 
 	// Add CORS support (Cross Origin Resource Sharing)
 	corsSetting := cors.New(cors.Options{
@@ -144,10 +144,8 @@ func main() {
 func LoadConfiguration(pwd string) error {
 	viper.SetConfigName("efeed-config")
 	viper.AddConfigPath(pwd)
-	devPath := pwd[:len(pwd)-3] + "src/efeed/cmd/efeedweb/"
 	_, file, _, _ := runtime.Caller(1)
 	configPath := path.Dir(file)
-	viper.AddConfigPath(devPath)
 	viper.AddConfigPath(configPath)
 	return viper.ReadInConfig() // Find and read the config file
 }

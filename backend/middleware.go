@@ -1,11 +1,12 @@
 package main
 
 import (
-	"efeed"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/sonhnguyenn/cmd/crawler"
 )
 
 const UserKeyName = "user-efeed-4829123"
@@ -18,30 +19,30 @@ type appLogger interface {
 	Log(str string, v ...interface{})
 }
 
-// efeedLogger is a wrapper for long.Logger
-type efeedLogger struct {
+// crawlerLogger is a wrapper for long.Logger
+type crawlerLogger struct {
 	*log.Logger
 }
 
 // Log produces a log entry with the current time prepended
-func (ml *efeedLogger) Log(str string, v ...interface{}) {
+func (ml *crawlerLogger) Log(str string, v ...interface{}) {
 	// Prepend current time to the slice of arguments
 	v = append(v, 0)
 	copy(v[1:], v[0:])
-	v[0] = efeed.TimeNow().Format(time.RFC3339)
+	v[0] = crawler.TimeNow().Format(time.RFC3339)
 	ml.Printf("[%s] "+str, v...)
 }
 
 // newMiddlewareLogger returns a new middlewareLogger.
-func newLogger() *efeedLogger {
-	return &efeedLogger{log.New(os.Stdout, "[efeed] ", 0)}
+func newLogger() *crawlerLogger {
+	return &crawlerLogger{log.New(os.Stdout, "[crawler] ", 0)}
 }
 
 // loggerHanderGenerator prduces a loggingHandler middleware
 // loggingHandler middleware logs all request
 func (a *App) loggingHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		t1 := efeed.TimeNow()
+		t1 := crawler.TimeNow()
 		a.logr.Log("Started %s %s", req.Method, req.URL.Path)
 
 		next.ServeHTTP(w, req)

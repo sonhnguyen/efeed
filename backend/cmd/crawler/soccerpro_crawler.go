@@ -1,4 +1,4 @@
-package efeed
+package crawler
 
 import (
 	"fmt"

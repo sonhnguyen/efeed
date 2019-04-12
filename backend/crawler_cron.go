@@ -1,12 +1,12 @@
 package main
 
 import (
-	"efeed"
+	"github.com/sonhnguyenn/cmd/crawler"
 )
 
 // RunCrawlerFanaticsAndSave RunCrawlerFanaticsAndSave
 func (a *App) RunCrawlerFanaticsAndSave() error {
-	err := efeed.RunCrawlerFanatics()
+	err := crawler.RunCrawlerFanatics()
 	if err != nil {
 		return err
 	}
@@ -15,7 +15,7 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 }
 
 func (a *App) RunCrawlerSoccerProAndSave() error {
-	err := efeed.RunCrawlerSoccerPro()
+	err := crawler.RunCrawlerSoccerPro()
 	if err != nil {
 		return err
 	}
