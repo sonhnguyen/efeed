@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
+	"path"
 )
 
 // handlerWithError is a handler function that returns an error.
@@ -18,6 +20,34 @@ func (a *App) Wrap(hn HandlerWithError) http.Handler {
 		if err != nil {
 			a.handleError(w, req, err)
 		}
+	}
+	return http.HandlerFunc(fn)
+}
+
+func (a *App) Index() http.Handler {
+	fp := path.Join("views", "index.html")
+	tmpl := template.Must(template.ParseFiles(fp))
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		if r.Method != "GET" {
+
+			tmpl.Execute(w, nil)
+			return
+		}
+
+		/*details := ContactDetails{
+			Email:   r.FormValue("email"),
+			Subject: r.FormValue("subject"),
+			Message: r.FormValue("message"),
+		}*/
+
+		name := r.FormValue("name")
+		_ = name
+		// do something with details
+		//_ = details
+
+		tmpl.Execute(w, struct{ Success bool }{true})
+		//tmpl.Execute(w, struct{ Success bool }{false})
 	}
 	return http.HandlerFunc(fn)
 }

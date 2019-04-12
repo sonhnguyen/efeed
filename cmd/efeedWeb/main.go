@@ -109,11 +109,13 @@ func main() {
 	if a.config.IsDevelopment == "true" {
 		handler = cors.Default().Handler(r)
 	}
+	//============================================================
 
+	//============================================================
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
-
-	go a.RunCrawlerSoccerProAndSave()
-	go a.RunCrawlerFanaticsAndSave()
+	r.Get("/", a.Index())
+	//go a.RunCrawlerSoccerProAndSave()
+	//go a.RunCrawlerFanaticsAndSave()
 
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {

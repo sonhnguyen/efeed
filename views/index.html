@@ -1,0 +1,19 @@
+<!-- index.html -->
+{{if .Success}}
+	<h1>Request Sent!</h1>
+{{else}}
+	<h1>Request</h1>
+	<form method="GET">
+		<label>Brand:</label><br />
+		<input type="text" name="brand"><br />
+		<label>Name:</label><br />
+		<input type="text" name="name"><br />
+		<label>Site:</label><br />
+		<input type="text" name="site"><br />
+		<label>Category:</label><br />
+		<input type="text" name="category"><br />
+		<label>Tag:</label><br />
+		<textarea name="tag"></textarea><br />
+		<input type="submit">
+	</form>
+{{end}}
