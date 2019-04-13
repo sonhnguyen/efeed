@@ -19,9 +19,8 @@ import (
 
 type efeedConfig struct {
 	Port          string
-	URI           string
-	Dbname        string
-	IsDevelopment string
+	DatabaseURL   string
+	IsDevelopment bool
 }
 
 // App in main app
@@ -46,22 +45,15 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 	var config efeedConfig
 	if viper.GetBool("isDevelopment") {
 		config = efeedConfig{
-			IsDevelopment: viper.GetString("isDevelopment"),
+			IsDevelopment: viper.GetBool("isDevelopment"),
 			Port:          viper.GetString("port"),
-			URI:           viper.GetString("uri"),
-			Dbname:        viper.GetString("dbname"),
+			DatabaseURL:   viper.GetString("DATABASE_URL"),
 		}
 	} else {
 		config = efeedConfig{
-			IsDevelopment: os.Getenv("isDevelopment"),
-			Port:          os.Getenv("PORT"),
-			URI:           os.Getenv("uri"),
-			Dbname:        os.Getenv("dbname"),
+			Port:        os.Getenv("PORT"),
+			DatabaseURL: os.Getenv("DATABASE_URL"),
 		}
-	}
-
-	if viper.GetBool("isLocal") {
-		config.URI = viper.GetString("uriLocal")
 	}
 
 	gp := globalPresenter{
@@ -69,7 +61,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		Description: "Api",
 		SiteURL:     "wtf",
 	}
-	db, err := efeed.OpenDB(config.URI)
+	db, err := efeed.OpenDB(config.DatabaseURL)
 	if err != nil {
 		log.Fatalln("cannot connect to db: ", err)
 	}
@@ -106,17 +98,15 @@ func main() {
 		AllowCredentials: true,
 	})
 	handler := corsSetting.Handler(r)
-	if a.config.IsDevelopment == "true" {
+	if a.config.IsDevelopment == true {
 		handler = cors.Default().Handler(r)
 	}
-	//============================================================
 
-	//============================================================
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
-	r.Get("/", a.Index())
 	r.Get("/products/search", a.ProductSearchHandler())
-	//go a.RunCrawlerSoccerProAndSave()
-	//go a.RunCrawlerFanaticsAndSave()
+	r.Get("/", a.Index())
+	go a.RunCrawlerSoccerProAndSave()
+	go a.RunCrawlerFanaticsAndSave()
 
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {
@@ -137,6 +127,13 @@ func main() {
 	if err != nil {
 		log.Println("error on cron job ", err)
 	}
+
+	err = c.AddFunc("@every 1h", func() {
+		err = a.RunPingHeroku()
+		if err != nil {
+			log.Println("error running RunPingHeroku ", err)
+		}
+	})
 
 	c.Start()
 
