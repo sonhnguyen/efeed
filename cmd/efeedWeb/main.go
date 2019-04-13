@@ -114,6 +114,7 @@ func main() {
 	//============================================================
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/", a.Index())
+	r.Get("/products/search", a.ProductSearchHandler())
 	//go a.RunCrawlerSoccerProAndSave()
 	//go a.RunCrawlerFanaticsAndSave()
 

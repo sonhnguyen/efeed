@@ -1,0 +1,34 @@
+<!-- list.html -->
+<body>
+<table style="width:100%" >
+    <tr>
+        <th>Name</th>
+        <th>Brand</th>
+        <th>Category</th>
+        <th>Tags</th>
+        <th>Description</th>
+        <th>Details</th>
+        <th>Images</th>
+        <th>Sizes</th>
+        <th>Colors</th>
+        <th>Price</th> 
+        <th>URL</th>
+
+    </tr>
+    {{range .}}
+        <tr style="outline: thin solid">
+            <td>{{.Name}}</td>
+            <td>{{.Brand}}</th>
+            <td>{{.Category}}</td>
+            <td>{{.Tags}}</td>
+            <td>{{.Description}}</td>
+            <td>{{.Details}}</td>
+            <td>{{.Images}}</td> 
+            <td>{{.Sizes}}</td>
+            <td>{{.Colors}}</td>
+            <td>{{.Price}}</td>
+            <td>{{.URL}}</td>
+        </tr>
+    {{end}}
+</table>
+</body>

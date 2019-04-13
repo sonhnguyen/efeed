@@ -3,7 +3,7 @@
 	<h1>Request Sent!</h1>
 {{else}}
 	<h1>Request</h1>
-	<form method="GET">
+	<form id = "myForm" method="GET" action="/products/search">
 		<label>Brand:</label><br />
 		<input type="text" name="brand"><br />
 		<label>Name:</label><br />
@@ -16,4 +16,17 @@
 		<textarea name="tag"></textarea><br />
 		<input type="submit">
 	</form>
+	<p id ="option">View Details</p>
+	<button onclick = "download()">Download</button>
+	<button onclick = "viewDetails()">viewDetails</button>
+<script>
+function download() {
+	document.getElementById("myForm").action = "/export";
+	document.getElementById("option").innerHTML = "Download CSV";
+}
+function viewDetails() {
+	document.getElementById("myForm").action = "/products/search";
+	document.getElementById("option").innerHTML = "View Details";
+}
+</script>
 {{end}}
