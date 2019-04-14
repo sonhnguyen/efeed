@@ -8,6 +8,10 @@ import (
 	"path"
 	"runtime"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -18,9 +22,14 @@ import (
 )
 
 type efeedConfig struct {
-	Port          string
-	DatabaseURL   string
-	IsDevelopment bool
+	Port              string
+	DatabaseURL       string
+	IsDevelopment     bool
+	DoAccessKey       string
+	DoSecretAccessKey string
+	DoEndpoint        string
+	DoBucket          string
+	DoSpaceURL        string
 }
 
 // App in main app
@@ -31,6 +40,7 @@ type App struct {
 	config efeedConfig
 	store  *sessions.CookieStore
 	db     *gorm.DB
+	svc    *s3.S3
 }
 
 // globalPresenter contains the fields neccessary for presenting in all templates
@@ -40,19 +50,42 @@ type globalPresenter struct {
 	SiteURL     string
 }
 
+func getDoClient(config efeedConfig) (*s3.S3, error) {
+	sess := session.New(&aws.Config{
+		Region:      aws.String("ap-southeast-1"),
+		Endpoint:    aws.String(config.DoEndpoint),
+		Credentials: credentials.NewStaticCredentials(config.DoAccessKey, config.DoSecretAccessKey, ""),
+	})
+
+	svc := s3.New(sess)
+
+	return svc, nil
+}
+
 // SetupApp for main
 func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 	var config efeedConfig
+
 	if viper.GetBool("isDevelopment") {
 		config = efeedConfig{
-			IsDevelopment: viper.GetBool("isDevelopment"),
-			Port:          viper.GetString("port"),
-			DatabaseURL:   viper.GetString("DATABASE_URL"),
+			DoAccessKey:       viper.GetString("DO_ACCESS_KEY"),
+			DoSecretAccessKey: viper.GetString("DO_SECRET_ACCESS_KEY"),
+			DoEndpoint:        viper.GetString("DO_ENDPOINT"),
+			DoBucket:          viper.GetString("DO_BUCKET"),
+			DoSpaceURL:        viper.GetString("DO_SpaceURL"),
+			IsDevelopment:     viper.GetBool("isDevelopment"),
+			Port:              viper.GetString("port"),
+			DatabaseURL:       viper.GetString("DATABASE_URL"),
 		}
 	} else {
 		config = efeedConfig{
-			Port:        os.Getenv("PORT"),
-			DatabaseURL: os.Getenv("DATABASE_URL"),
+			DoAccessKey:       os.Getenv("DO_ACCESS_KEY"),
+			DoSecretAccessKey: os.Getenv("DO_SECRET_ACCESS_KEY"),
+			DoEndpoint:        os.Getenv("DO_ENDPOINT"),
+			DoBucket:          os.Getenv("DO_BUCKET"),
+			DoSpaceURL:        os.Getenv("DO_SpaceURL"),
+			Port:              os.Getenv("PORT"),
+			DatabaseURL:       os.Getenv("DATABASE_URL"),
 		}
 	}
 
@@ -66,12 +99,18 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		log.Fatalln("cannot connect to db: ", err)
 	}
 
+	svc, err := getDoClient(config)
+	if err != nil {
+		log.Fatalln("cannot connect to svc: ", err)
+	}
+
 	return &App{
 		router: r,
 		gp:     gp,
 		logr:   logger,
 		config: config,
 		db:     db,
+		svc:    svc,
 	}
 }
 
@@ -128,7 +167,7 @@ func main() {
 		log.Println("error on cron job ", err)
 	}
 
-	err = c.AddFunc("@every 1h", func() {
+	err = c.AddFunc("@every 25m", func() {
 		err = a.RunPingHeroku()
 		if err != nil {
 			log.Println("error running RunPingHeroku ", err)

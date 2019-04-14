@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 var productCategoryURLs = map[string]string{
@@ -130,7 +131,7 @@ func crawlProductsPage(category, url, option string) ([]Product, error) {
 }
 
 // RunCrawlerSoccerPro RunCrawlerSoccerPro
-func RunCrawlerSoccerPro() error {
+func RunCrawlerSoccerPro(spaceURL string, svc *s3.S3) error {
 	fmt.Println("RunCrawlerSoccerPro:")
 
 	for category, element := range productCategoryURLs {
@@ -146,8 +147,30 @@ func RunCrawlerSoccerPro() error {
 				continue
 			}
 			fmt.Println("saving:", product.URL)
+			for _, link := range product.Images {
+				hostedImage, err := UploadToDO(spaceURL, "soccerpro", link, svc)
+				if err != nil {
+					fmt.Println("error when product hostedImage: ", err)
+					continue
+				}
+				product.HostedImages = append(product.HostedImages, hostedImage)
+			}
 			DB.Create(&product)
 		} else {
+			if len(p.HostedImages) != len(p.Images) {
+				var images []string
+				for _, link := range p.Images {
+					hostedImage, err := UploadToDO(spaceURL, "soccerpro", link, svc)
+					if err != nil {
+						fmt.Println("error when product hostedImage: ", err)
+						continue
+					}
+					images = append(images, hostedImage)
+				}
+				p.HostedImages = images
+				DB.Save(&p)
+			}
+			fmt.Println("skipping: ", product.URL)
 		}
 	}
 	return nil

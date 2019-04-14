@@ -16,21 +16,22 @@ type ProductSearch struct {
 // Product struct
 type Product struct {
 	gorm.Model
-	Brand       string         `json:"brand"`
-	Category    string         `json:"category"`
-	Description string         `json:"description"`
-	Details     pq.StringArray `gorm:"type:varchar(500)[]"`
-	Images      pq.StringArray `gorm:"type:varchar(500)[]" json:"image"`
-	Sizes       pq.StringArray `gorm:"type:varchar(64)[]"`
-	Colors      pq.StringArray `gorm:"type:varchar(64)[]"`
-	Name        string         `json:"name"`
-	URL         string         `json:"url"`
-	Price       float64        `json:"price"`
-	Type        string         `json:"@type"`
-	ProductID   string         `json:"productID"`
-	Tags        pq.StringArray `gorm:"type:varchar(500)[]"`
-	Ranking     int
-	Site        string
+	Brand        string         `json:"brand"`
+	Category     string         `json:"category"`
+	Description  string         `json:"description"`
+	Details      pq.StringArray `gorm:"type:varchar(500)[]"`
+	Images       pq.StringArray `gorm:"type:varchar(500)[]" json:"image"`
+	HostedImages pq.StringArray `gorm:"type:varchar(500)[]"`
+	Sizes        pq.StringArray `gorm:"type:varchar(64)[]"`
+	Colors       pq.StringArray `gorm:"type:varchar(64)[]"`
+	Name         string         `json:"name"`
+	URL          string         `json:"url"`
+	Price        float64        `json:"price"`
+	Type         string         `json:"@type"`
+	ProductID    string         `json:"productID"`
+	Tags         pq.StringArray `gorm:"type:varchar(500)[]"`
+	Ranking      int
+	Site         string
 }
 
 // FanaticAPIParams FanaticAPIParams

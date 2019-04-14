@@ -7,7 +7,7 @@ import (
 
 // RunCrawlerFanaticsAndSave RunCrawlerFanaticsAndSave
 func (a *App) RunCrawlerFanaticsAndSave() error {
-	err := efeed.RunCrawlerFanatics()
+	err := efeed.RunCrawlerFanatics(a.config.DoSpaceURL, a.svc)
 	if err != nil {
 		return err
 	}
@@ -17,7 +17,7 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 
 // RunCrawlerSoccerProAndSave RunCrawlerSoccerProAndSave
 func (a *App) RunCrawlerSoccerProAndSave() error {
-	err := efeed.RunCrawlerSoccerPro()
+	err := efeed.RunCrawlerSoccerPro(a.config.DoSpaceURL, a.svc)
 	if err != nil {
 		return err
 	}

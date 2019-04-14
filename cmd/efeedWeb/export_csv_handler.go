@@ -39,7 +39,7 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 
 		wr := csv.NewWriter(w)
 
-		if err := wr.Write([]string{"Title", "Description", "Price", "Type", "Option1 Name", "Option1 Value", "Option2 Name", "Option2 Value", "Image Src"}); err != nil {
+		if err := wr.Write([]string{"Title", "Description", "Price", "Type", "Option1 Name", "Option1 Value", "Option2 Name", "Option2 Value", "Image Src", "Hosted Images"}); err != nil {
 			fmt.Println("error writing record to csv:", err)
 		}
 
@@ -63,6 +63,7 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 			}
 			record = append(record, strings.Join(result.Colors, ","))
 			record = append(record, strings.Join(result.Images, ","))
+			record = append(record, strings.Join(result.HostedImages, ","))
 
 			if err := wr.Write(record); err != nil {
 				fmt.Println("error writing record to csv:", err)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 var data map[string]string
@@ -216,7 +217,7 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 	return productLink, nil
 }
 
-func crawlMainPageAndSave(category, targetURL string) error {
+func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL string) error {
 	resp, err := getRequest(targetURL, FanaticAPIParams{})
 	if err != nil {
 		return fmt.Errorf("error when getRequest crawlMainPage: %s", err)
@@ -249,8 +250,29 @@ func crawlMainPageAndSave(category, targetURL string) error {
 				fmt.Println("saving product: ", product.URL)
 				product.Tags = AppendIfMissing(product.Tags, category)
 				product.Tags = AppendIfMissing(product.Tags, team)
+				for _, link := range product.Images {
+					hostedImage, err := UploadToDO(spaceURL, "fanatics", link, svc)
+					if err != nil {
+						fmt.Println("error when product hostedImage: ", err)
+						continue
+					}
+					product.HostedImages = append(product.HostedImages, hostedImage)
+				}
 				DB.Create(&product)
 			} else {
+				if len(p.HostedImages) != len(p.Images) {
+					var images []string
+					for _, link := range p.Images {
+						hostedImage, err := UploadToDO(spaceURL, "fanatics", link, svc)
+						if err != nil {
+							fmt.Println("error when product hostedImage: ", err)
+							continue
+						}
+						images = append(images, hostedImage)
+					}
+					p.HostedImages = images
+					DB.Save(&p)
+				}
 				fmt.Println("skipping: ", product.URL)
 			}
 
@@ -271,10 +293,10 @@ func extractTeamLinks(doc *goquery.Document) map[string]string {
 }
 
 // RunCrawlerFanatics RunCrawlerFanatics
-func RunCrawlerFanatics() error {
+func RunCrawlerFanatics(spaceURL string, svc *s3.S3) error {
 	fmt.Println("RunCrawlerFanatics")
 	for category, url := range categoryURLs {
-		err := crawlMainPageAndSave(category, url)
+		err := crawlMainPageAndSave(category, url, svc, spaceURL)
 		if err != nil {
 			fmt.Printf("error at crawling category: %s\n, error: %s", category, err)
 		}
