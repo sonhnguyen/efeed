@@ -2,6 +2,7 @@ package main
 
 import (
 	"efeed"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path"
@@ -18,7 +19,10 @@ func (a *App) ProductSearchHandler() http.Handler {
 		productSearch := efeed.ProductSearch{}
 		queryValues := r.URL.Query()
 		if value := queryValues.Get("tags"); value != "" {
-			productSearch.Tags = strings.Split(value, ",")
+			tags := strings.Split(value, ",")
+			for _, tag := range tags {
+				productSearch.Tags = append(productSearch.Tags, strings.TrimSpace(tag))
+			}
 		}
 		if value := queryValues.Get("site"); value != "" {
 			productSearch.Site = value
@@ -34,8 +38,8 @@ func (a *App) ProductSearchHandler() http.Handler {
 		}
 
 		results := efeed.QueryProducts(productSearch, 1000)
+		fmt.Println(results)
 		tmpl.Execute(w, results)
-		println(results[1].Name)
 	}
 	return http.HandlerFunc(fn)
 

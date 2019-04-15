@@ -306,7 +306,7 @@ func RunCrawlerFanatics(spaceURL string, svc *s3.S3) error {
 
 // AppendIfMissing AppendIfMissing
 func AppendIfMissing(slice []string, str string) []string {
-	str = strings.ToLower(str)
+	str = strings.TrimSpace(strings.ToLower(str))
 	for _, ele := range slice {
 		if ele == str {
 			return slice
