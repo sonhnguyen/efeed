@@ -2,7 +2,6 @@ package main
 
 import (
 	"efeed"
-	"fmt"
 	"html/template"
 	"net/http"
 	"path"
@@ -11,17 +10,16 @@ import (
 
 func (a *App) ProductSearchHandler() http.Handler {
 	fp := path.Join("views", "list.html")
-	tmpl := template.Must(template.ParseFiles(fp))
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.New("list.html").Funcs(template.FuncMap{"StringsJoin": strings.Join}).ParseFiles(fp))
 
-		//tmpl.Execute(w, nil)
+	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		productSearch := efeed.ProductSearch{}
 		queryValues := r.URL.Query()
 		if value := queryValues.Get("tags"); value != "" {
 			tags := strings.Split(value, ",")
 			for _, tag := range tags {
-				productSearch.Tags = append(productSearch.Tags, strings.TrimSpace(tag))
+				productSearch.Tags = append(productSearch.Tags, strings.ToLower(strings.TrimSpace(tag)))
 			}
 		}
 		if value := queryValues.Get("site"); value != "" {
@@ -38,7 +36,6 @@ func (a *App) ProductSearchHandler() http.Handler {
 		}
 
 		results := efeed.QueryProducts(productSearch, 1000)
-		fmt.Println(results)
 		tmpl.Execute(w, results)
 	}
 	return http.HandlerFunc(fn)

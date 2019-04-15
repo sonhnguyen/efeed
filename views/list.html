@@ -21,13 +21,13 @@
             <td>{{.Name}}</td>
             <td>{{.Brand}}</th>
             <td>{{.Category}}</td>
-            <td>{{.Tags}}</td>
-            <td>{{.Description}}</td>
-            <td>{{.Details}}</td>
-            <td>{{.Images}}</td> 
-            <td>{{.HostedImages}}</td> 
-            <td>{{.Sizes}}</td>
-            <td>{{.Colors}}</td>
+            <td>{{ StringsJoin .Tags ", " }}</td>
+            <td>{{ .Description }}</td>
+            <td>{{ StringsJoin .Details ", " }}</td>
+            <td>{{ StringsJoin .Images ", " }}</td> 
+            <td>{{ StringsJoin .HostedImages ", " }}</td> 
+            <td>{{ StringsJoin .Sizes ", " }}</td>
+            <td>{{ StringsJoin .Colors ", "}}</td>
             <td>{{.Price}}</td>
             <td>{{.URL}}</td>
         </tr>

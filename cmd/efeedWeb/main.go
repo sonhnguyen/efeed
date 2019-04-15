@@ -144,8 +144,8 @@ func main() {
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/products/search", a.ProductSearchHandler())
 	r.Get("/", a.Index())
-	go a.RunCrawlerSoccerProAndSave()
-	go a.RunCrawlerFanaticsAndSave()
+	// go a.RunCrawlerSoccerProAndSave()
+	// go a.RunCrawlerFanaticsAndSave()
 
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {
