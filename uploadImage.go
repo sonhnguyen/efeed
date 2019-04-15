@@ -60,11 +60,36 @@ func UploadToDO(spaceURL, siteFolder, link string, svc *s3.S3) (string, error) {
 	imagesPath := filepath.Join(imagesSiteFolder, fileName)
 	downloadFile(imagesPath, link)
 	defer deleteFile(imagesPath)
+	if fileType := getFileContentType(imagesPath); strings.Split(fileType, "/")[0] != "image" {
+		return "", fmt.Errorf("cannot download file as image, get: %s", fileType)
+	}
 	var imageURL string
 
 	uploadToDO(siteFolder, fileName, imagesPath, "efeed", svc)
 	imageURL = spaceURL + siteFolder + "/" + fileName
 	return imageURL, nil
+}
+
+func getFileContentType(filepath string) string {
+	f, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// Only the first 512 bytes are used to sniff the content type.
+	buffer := make([]byte, 512)
+
+	_, err = f.Read(buffer)
+	if err != nil {
+		return ""
+	}
+
+	// Use the net/http package's handy DectectContentType function. Always returns a valid
+	// content-type by returning "application/octet-stream" if no others seemed to match.
+	contentType := http.DetectContentType(buffer)
+
+	return contentType
 }
 
 func getFanaticsFileName(link string) string {
