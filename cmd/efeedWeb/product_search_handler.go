@@ -33,7 +33,7 @@ func (a *App) ProductSearchHandler() http.Handler {
 			productSearch.Category = value
 		}
 
-		results := efeed.QueryProducts(productSearch)
+		results := efeed.QueryProducts(productSearch, 1000)
 		tmpl.Execute(w, results)
 		println(results[1].Name)
 	}

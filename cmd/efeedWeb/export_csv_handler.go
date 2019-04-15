@@ -35,7 +35,7 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 			productSearch.Category = value
 		}
 
-		results := efeed.QueryProducts(productSearch)
+		results := efeed.QueryProducts(productSearch, -1)
 
 		wr := csv.NewWriter(w)
 

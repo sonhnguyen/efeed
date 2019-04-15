@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -53,9 +54,7 @@ func crawlProductDetails(p Product) (Product, error) {
 		p.Sizes = append(p.Sizes, s.Text())
 	})
 	doc.Find(".woocommerce-breadcrumb .container span a").Each(func(i int, s *goquery.Selection) {
-		tags := p.Tags
-		tags = append(tags, s.Text())
-		p.Tags = tags
+		p.Tags = append(p.Tags, strings.ToLower(s.Text()))
 	})
 	doc.Find("p.sku span").Each(func(i int, s *goquery.Selection) {
 		op, _ := s.Attr("itemprop")
@@ -121,7 +120,7 @@ func crawlProductsPage(category, url, option string) ([]Product, error) {
 		doc.Find(".products.row").Find("a").Each(func(i int, s *goquery.Selection) {
 
 			link, _ := s.Attr("href")
-			productLink := Product{Site: "https://www.soccerpro.com", URL: link, Ranking: rank, Category: category, Tags: []string{category}}
+			productLink := Product{Site: "https://www.soccerpro.com", URL: link, Ranking: rank, Category: category, Tags: []string{strings.ToLower(category)}}
 			productsURL = append(productsURL, productLink)
 			rank++
 		})
