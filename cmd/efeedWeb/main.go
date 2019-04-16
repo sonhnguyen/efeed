@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"runtime"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -30,6 +31,7 @@ type efeedConfig struct {
 	DoEndpoint        string
 	DoBucket          string
 	DoSpaceURL        string
+	EnableCrawling    bool
 }
 
 // App in main app
@@ -76,8 +78,10 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			IsDevelopment:     viper.GetBool("isDevelopment"),
 			Port:              viper.GetString("port"),
 			DatabaseURL:       viper.GetString("DATABASE_URL"),
+			EnableCrawling:    viper.GetBool("ENABLE_CRAWLING"),
 		}
 	} else {
+		enableCrawling, _ := strconv.ParseBool(os.Getenv("ENABLE_CRAWLING"))
 		config = efeedConfig{
 			DoAccessKey:       os.Getenv("DO_ACCESS_KEY"),
 			DoSecretAccessKey: os.Getenv("DO_SECRET_ACCESS_KEY"),
@@ -86,6 +90,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			DoSpaceURL:        os.Getenv("DO_SpaceURL"),
 			Port:              os.Getenv("PORT"),
 			DatabaseURL:       os.Getenv("DATABASE_URL"),
+			EnableCrawling:    enableCrawling,
 		}
 	}
 
@@ -144,7 +149,7 @@ func main() {
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/products/search", a.ProductSearchHandler())
 	r.Get("/", a.Index())
-	if viper.GetBool("ENABLE_CRAWLING") {
+	if a.config.EnableCrawling {
 		go a.RunCrawlerSoccerProAndSave()
 		go a.RunCrawlerFanaticsAndSave()
 	}
