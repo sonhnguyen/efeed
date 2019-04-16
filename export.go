@@ -1,6 +1,8 @@
 package efeed
 
-import "strings"
+import (
+	"strings"
+)
 
 // QueryProducts QueryProducts
 func QueryProducts(search ProductSearch, limit int) []Product {

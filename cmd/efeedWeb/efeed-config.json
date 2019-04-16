@@ -6,5 +6,6 @@
 	"DO_SECRET_ACCESS_KEY": "aWg+iL7AfmTXhYJEVkY65j5WcnZWc3mJ4dp7J0BP7aM",
 	"DO_ENDPOINT": "https://sgp1.digitaloceanspaces.com",
 	"DO_BUCKET": "efeed",
-	"DO_SpaceURL": "https://efeed.sgp1.digitaloceanspaces.com/"
+	"DO_SpaceURL": "https://efeed.sgp1.digitaloceanspaces.com/",
+	"ENABLE_CRAWLING": "false"
 }
