@@ -18,9 +18,9 @@ func downloadFile(filepath string, url string) error {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		fmt.Println("downloading: " + filepath)
 		// Get the data
-		resp, err := http.Get(url)
+		resp, err := getRequest(url, FanaticAPIParams{})
 		if err != nil {
-			return err
+			return fmt.Errorf("error when crawling: %s", err)
 		}
 		defer resp.Body.Close()
 
