@@ -38,7 +38,6 @@ func (a *App) Index() http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		data.Brand = efeed.GetDistinctValue("brand")
-
 		data.Category = efeed.GetDistinctValue("category")
 		data.Site = efeed.GetDistinctValue("site")
 		tmpl.Execute(w, data)

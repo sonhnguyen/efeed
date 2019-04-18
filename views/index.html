@@ -3,25 +3,34 @@
 <form id = "myForm" method="GET" action="/products/search">
 	<h2> Search will perform searching with all conditions meets. </h2>
 	<label>Brand:</label><br />
-	<select name = "brand"> 
+
+	<select name = "brand">
+		<option></option>
 		{{range $key, $value := .Brand}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
 	</select> <br/>
+
 	<label>Name:</label><br />
 	<input type="text" name="name"><br />
+
 	<label>Site:</label><br />
-	<select name = "site"> 
+	<select name = "site">
+		<option></option>
+
 		{{range $key, $value := .Site}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
 	</select> <br/>
+
 	<label>Category:</label><br />
-	<select name = "category"> 
+	<select name = "category">
+		<option></option>
 		{{range $key, $value := .Category}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
 	</select> <br/>
+
 	<label>Tags: (example "NBA,Men,houston rockets" will query houston rockets Men products in NBA)</label><br />
 	<label>Can see what tags in viewing examples or get the string on Fanatics/ Soccerpro site</label><br />
 	<textarea name="tags"></textarea><br />
