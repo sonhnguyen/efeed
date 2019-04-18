@@ -5,7 +5,7 @@
 	<label>Brand:</label><br />
 
 	<select name = "brand">
-		<option></option>
+		<option value="">Select all</option>
 		{{range $key, $value := .Brand}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
@@ -16,8 +16,7 @@
 
 	<label>Site:</label><br />
 	<select name = "site">
-		<option></option>
-
+		<option value="">Select all</option>
 		{{range $key, $value := .Site}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
@@ -25,8 +24,8 @@
 
 	<label>Category:</label><br />
 	<select name = "category">
-		<option></option>
-		{{range $key, $value := .Category}}
+			<option value="">Select all</option>
+			{{range $key, $value := .Category}}
 		  <option value="{{ $value }}">{{$value}}</option>
 		{{end}}
 	</select> <br/>
