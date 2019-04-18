@@ -42,14 +42,19 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 
 		wr := csv.NewWriter(w)
 
-		if err := wr.Write([]string{"Title", "Description", "Price", "Type", "Option1 Name", "Option1 Value", "Option2 Name", "Option2 Value", "Image Src", "Hosted Images"}); err != nil {
+		if err := wr.Write([]string{"Name", "Brand", "Category", "Tags", "Description", "Details", "Price", "Type", "Option1 Name", "Option1 Value", "Option2 Name", "Option2 Value", "Image Src", "Hosted Images", "URL"}); err != nil {
 			fmt.Println("error writing record to csv:", err)
 		}
 
 		for _, result := range results {
 			var record []string
 			record = append(record, result.Name)
+			record = append(record, result.Brand)
+			record = append(record, result.Category)
+			record = append(record, strings.Join(result.Tags, ", "))
 			record = append(record, result.Description)
+			record = append(record, strings.Join(result.Details, ", "))
+
 			record = append(record, fmt.Sprintf("%f", result.Price))
 			record = append(record, result.Type)
 			if result.Sizes != nil {
@@ -67,6 +72,7 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 			record = append(record, strings.Join(result.Colors, ","))
 			record = append(record, strings.Join(result.Images, ","))
 			record = append(record, strings.Join(result.HostedImages, ","))
+			record = append(record, result.URL)
 
 			if err := wr.Write(record); err != nil {
 				fmt.Println("error writing record to csv:", err)
