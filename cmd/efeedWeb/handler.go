@@ -1,6 +1,7 @@
 package main
 
 import (
+	"efeed"
 	"encoding/json"
 	"html/template"
 	"net/http"
@@ -24,12 +25,23 @@ func (a *App) Wrap(hn HandlerWithError) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+type Data struct {
+	Brand    []string
+	Site     []string
+	Category []string
+}
+
 func (a *App) Index() http.Handler {
 	fp := path.Join("views", "index.html")
 	tmpl := template.Must(template.ParseFiles(fp))
+	var data Data
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
-		tmpl.Execute(w, nil)
+		data.Brand = efeed.GetDistinctValue("brand")
+
+		data.Category = efeed.GetDistinctValue("category")
+		data.Site = efeed.GetDistinctValue("site")
+		tmpl.Execute(w, data)
 
 		//tmpl.Execute(w, struct{ Success bool }{true})
 		//tmpl.Execute(w, struct{ Success bool }{false})
