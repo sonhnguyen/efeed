@@ -20,7 +20,10 @@ func (a *App) ExportCSVHandler() HandlerWithError {
 		productSearch := efeed.ProductSearch{}
 		queryValues := req.URL.Query()
 		if value := queryValues.Get("tags"); value != "" {
-			productSearch.Tags = strings.Split(value, ",")
+			tags := strings.Split(value, ",")
+			for _, tag := range tags {
+				productSearch.Tags = append(productSearch.Tags, strings.ToLower(strings.TrimSpace(tag)))
+			}
 		}
 		if value := queryValues.Get("site"); value != "" {
 			productSearch.Site = value
