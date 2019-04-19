@@ -40,3 +40,9 @@ type FanaticAPIParams struct {
 	PageNumber string `json:"pageNumber"`
 	SortOption string `json:"sortOption"`
 }
+
+type Config struct {
+	EnableProxy bool
+	ProxyURL    string
+	DoSpaceURL  string
+}

@@ -7,7 +7,9 @@ import (
 
 // RunCrawlerFanaticsAndSave RunCrawlerFanaticsAndSave
 func (a *App) RunCrawlerFanaticsAndSave() error {
-	err := efeed.RunCrawlerFanatics(a.config.DoSpaceURL, a.svc)
+	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL}
+
+	err := efeed.RunCrawlerFanatics(efeedConfig, a.svc)
 	if err != nil {
 		return err
 	}
@@ -17,7 +19,9 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 
 // RunCrawlerSoccerProAndSave RunCrawlerSoccerProAndSave
 func (a *App) RunCrawlerSoccerProAndSave() error {
-	err := efeed.RunCrawlerSoccerPro(a.config.DoSpaceURL, a.svc)
+	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL}
+
+	err := efeed.RunCrawlerSoccerPro(efeedConfig, a.svc)
 	if err != nil {
 		return err
 	}

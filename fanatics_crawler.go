@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -35,11 +36,20 @@ const (
 	PAGE_SIZE        = "96"
 )
 
-func getRequest(url string, params FanaticAPIParams) (*http.Response, error) {
-	client := &http.Client{
-		Timeout: time.Second * 10,
+func getRequest(config Config, link string, params FanaticAPIParams) (*http.Response, error) {
+	var netTransport = &http.Transport{}
+	if config.EnableProxy {
+		fmt.Println("proxy:", config.ProxyURL)
+		proxyURL, _ := url.Parse(config.ProxyURL)
+		netTransport.Proxy = http.ProxyURL(proxyURL)
 	}
-	req, err := http.NewRequest("GET", url, nil)
+
+	client := &http.Client{
+		Transport: netTransport,
+		Timeout:   time.Second * 10,
+	}
+
+	req, err := http.NewRequest("GET", link, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
 
 	if err != nil {
@@ -63,16 +73,16 @@ func getRequest(url string, params FanaticAPIParams) (*http.Response, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return resp, fmt.Errorf("error when getRequest %s", url)
+		return resp, fmt.Errorf("error when getRequest %s", link)
 	}
 	return resp, nil
 }
 
-func crawlProductDetailPageJSON(p Product) (Product, error) {
+func crawlProductDetailPageJSON(config Config, p Product) (Product, error) {
 	var sizes []string
 	var colors []string
 	var details []string
-	resp, err := getRequest(p.URL, FanaticAPIParams{})
+	resp, err := getRequest(config, p.URL, FanaticAPIParams{})
 	if err != nil {
 		return Product{}, fmt.Errorf("error when crawling: %s", err)
 	}
@@ -134,8 +144,8 @@ func removeCharactersExceptNumbers(str string) (float64, error) {
 	return s, nil
 }
 
-func crawlProductsInListingPage(gender, url string) ([]Product, error) {
-	resp, err := getRequest(url, FanaticAPIParams{SortOption: SORT_OPTION, PageSize: PAGE_SIZE, PageNumber: "1"})
+func crawlProductsInListingPage(config Config, gender, url string) ([]Product, error) {
+	resp, err := getRequest(config, url, FanaticAPIParams{SortOption: SORT_OPTION, PageSize: PAGE_SIZE, PageNumber: "1"})
 	if err != nil {
 		return []Product{}, fmt.Errorf("error when getRequest crawlProductsInListingPage: %s", err)
 	}
@@ -171,7 +181,7 @@ func crawlProductsInListingPage(gender, url string) ([]Product, error) {
 		} else {
 			currentPageNum++
 
-			resp, err = getRequest(url, FanaticAPIParams{SortOption: SORT_OPTION, PageSize: PAGE_SIZE, PageNumber: strconv.Itoa(currentPageNum)})
+			resp, err = getRequest(config, url, FanaticAPIParams{SortOption: SORT_OPTION, PageSize: PAGE_SIZE, PageNumber: strconv.Itoa(currentPageNum)})
 			if err != nil {
 				return []Product{}, fmt.Errorf("error when getRequest crawlProductsInListingPage: %s, currentPageNum: %d", err, currentPageNum)
 			}
@@ -186,10 +196,10 @@ func crawlProductsInListingPage(gender, url string) ([]Product, error) {
 	return productsURL, nil
 }
 
-func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
+func crawlAllProductLinksOfTeam(config Config, targetURL string) ([]Product, error) {
 	var productLink []Product
 	genderAgeGroups := map[string]string{}
-	resp, err := getRequest(targetURL, FanaticAPIParams{})
+	resp, err := getRequest(config, targetURL, FanaticAPIParams{})
 	if err != nil {
 		return []Product{}, fmt.Errorf("error when getRequest crawlAllProductLinksOfTeam: %s", err)
 	}
@@ -206,7 +216,7 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 	}
 	for gender, link := range genderAgeGroups {
 		productsListLink := BASE_URL + link
-		productsLinks, err := crawlProductsInListingPage(gender, productsListLink)
+		productsLinks, err := crawlProductsInListingPage(config, gender, productsListLink)
 		if err != nil {
 			return []Product{}, fmt.Errorf("error when productsLinks crawlProductsInListingPage: %s", err)
 		}
@@ -217,8 +227,8 @@ func crawlAllProductLinksOfTeam(targetURL string) ([]Product, error) {
 	return productLink, nil
 }
 
-func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL string) error {
-	resp, err := getRequest(targetURL, FanaticAPIParams{})
+func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, config Config) error {
+	resp, err := getRequest(config, targetURL, FanaticAPIParams{})
 	if err != nil {
 		return fmt.Errorf("error when getRequest crawlMainPage: %s", err)
 	}
@@ -232,7 +242,7 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL strin
 	for team, teamPageURL := range teamPages {
 		var productsURLs []Product
 		teamPageURL = BASE_URL + teamPageURL
-		productsLinks, err := crawlAllProductLinksOfTeam(teamPageURL)
+		productsLinks, err := crawlAllProductLinksOfTeam(config, teamPageURL)
 		if err != nil {
 			return fmt.Errorf("error when productsLinks crawlMainPage: %s", err)
 		}
@@ -242,7 +252,7 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL strin
 		for _, product := range productsURLs {
 			var p Product
 			if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
-				product, err := crawlProductDetailPageJSON(product)
+				product, err := crawlProductDetailPageJSON(config, product)
 				if err != nil {
 					fmt.Println("error when product crawlMainPage: ", err)
 					continue
@@ -251,7 +261,7 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL strin
 				product.Tags = AppendIfMissing(product.Tags, category)
 				product.Tags = AppendIfMissing(product.Tags, team)
 				for _, link := range product.Images {
-					hostedImage, err := UploadToDO(spaceURL, "fanatics", link, svc)
+					hostedImage, err := UploadToDO(config, "fanatics", link, svc)
 					if err != nil {
 						fmt.Println("error when product hostedImage: ", err)
 						continue
@@ -263,7 +273,7 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, spaceURL strin
 				if len(p.HostedImages) != len(p.Images) {
 					var images []string
 					for _, link := range p.Images {
-						hostedImage, err := UploadToDO(spaceURL, "fanatics", link, svc)
+						hostedImage, err := UploadToDO(config, "fanatics", link, svc)
 						if err != nil {
 							fmt.Println("error when product hostedImage: ", err)
 							continue
@@ -293,10 +303,10 @@ func extractTeamLinks(doc *goquery.Document) map[string]string {
 }
 
 // RunCrawlerFanatics RunCrawlerFanatics
-func RunCrawlerFanatics(spaceURL string, svc *s3.S3) error {
+func RunCrawlerFanatics(config Config, svc *s3.S3) error {
 	fmt.Println("RunCrawlerFanatics")
 	for category, url := range categoryURLs {
-		err := crawlMainPageAndSave(category, url, svc, spaceURL)
+		err := crawlMainPageAndSave(category, url, svc, config)
 		if err != nil {
 			fmt.Printf("error at crawling category: %s\n, error: %s", category, err)
 		}

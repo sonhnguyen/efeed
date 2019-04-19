@@ -2,7 +2,6 @@ package efeed
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -26,9 +25,9 @@ const (
 	PAGE            = "page/"
 )
 
-func crawlProductDetails(p Product) (Product, error) {
+func crawlProductDetails(config Config, p Product) (Product, error) {
 
-	resp, err := getRequest(p.URL, FanaticAPIParams{})
+	resp, err := getRequest(config, p.URL, FanaticAPIParams{})
 	if err != nil {
 		return Product{}, fmt.Errorf("error when crawling: %s", err)
 	}
@@ -69,23 +68,9 @@ func crawlProductDetails(p Product) (Product, error) {
 	return p, nil
 }
 
-func getSoccerRequest(url string) (*http.Response, error) {
-	client := &http.Client{}
+func crawlProductsPage(config Config, category, url, option string) ([]Product, error) {
 
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-
-	res, err := client.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-func crawlProductsPage(category, url, option string) ([]Product, error) {
-
-	resp, err := getSoccerRequest(url + option)
+	resp, err := getRequest(config, url+option, FanaticAPIParams{})
 	if err != nil {
 		return []Product{}, fmt.Errorf("error when getRequest crawlProductsInListingPage: %s", err)
 	}
@@ -107,7 +92,7 @@ func crawlProductsPage(category, url, option string) ([]Product, error) {
 	rank := 1
 	for i := 1; i <= max; i++ {
 		target := url + "page" + strconv.Itoa(i) + "/" + OPTION
-		resp, err := getSoccerRequest(target)
+		resp, err := getRequest(config, target, FanaticAPIParams{})
 
 		if err != nil {
 			return []Product{}, fmt.Errorf("error when get page %s", err)
@@ -130,24 +115,24 @@ func crawlProductsPage(category, url, option string) ([]Product, error) {
 }
 
 // RunCrawlerSoccerPro RunCrawlerSoccerPro
-func RunCrawlerSoccerPro(spaceURL string, svc *s3.S3) error {
+func RunCrawlerSoccerPro(config Config, svc *s3.S3) error {
 	fmt.Println("RunCrawlerSoccerPro:")
 
 	for category, element := range productCategoryURLs {
-		foundURLs, _ := crawlProductsPage(category, element, OPTION)
+		foundURLs, _ := crawlProductsPage(config, category, element, OPTION)
 		productList = append(productList, foundURLs...)
 	}
 
 	for _, product := range productList {
 		var p Product
 		if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
-			product, err := crawlProductDetails(product)
+			product, err := crawlProductDetails(config, product)
 			if err != nil {
 				continue
 			}
 			fmt.Println("saving:", product.URL)
 			for _, link := range product.Images {
-				hostedImage, err := UploadToDO(spaceURL, "soccerpro", link, svc)
+				hostedImage, err := UploadToDO(config, "soccerpro", link, svc)
 				if err != nil {
 					fmt.Println("error when product hostedImage: ", err)
 					continue
@@ -159,7 +144,7 @@ func RunCrawlerSoccerPro(spaceURL string, svc *s3.S3) error {
 			if len(p.HostedImages) != len(p.Images) {
 				var images []string
 				for _, link := range p.Images {
-					hostedImage, err := UploadToDO(spaceURL, "soccerpro", link, svc)
+					hostedImage, err := UploadToDO(config, "soccerpro", link, svc)
 					if err != nil {
 						fmt.Println("error when product hostedImage: ", err)
 						continue

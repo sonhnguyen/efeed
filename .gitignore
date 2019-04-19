@@ -26,3 +26,4 @@ _testmain.go
 .DS_Store
 images/
 src/
+efeed-config.json

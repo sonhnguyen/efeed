@@ -14,11 +14,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func downloadFile(filepath string, url string) error {
+func downloadFile(config Config, filepath string, url string) error {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		fmt.Println("downloading: " + filepath)
 		// Get the data
-		resp, err := getRequest(url, FanaticAPIParams{})
+		resp, err := getRequest(config, url, FanaticAPIParams{})
 		if err != nil {
 			return fmt.Errorf("error when crawling: %s", err)
 		}
@@ -43,7 +43,7 @@ func deleteFile(path string) {
 }
 
 // UploadToDO UploadToDO
-func UploadToDO(spaceURL, siteFolder, link string, svc *s3.S3) (string, error) {
+func UploadToDO(config Config, siteFolder, link string, svc *s3.S3) (string, error) {
 	fmt.Println("uploading image: ", link)
 	imagesFolder := filepath.Join(".", "images")
 	os.MkdirAll(imagesFolder, os.ModePerm)
@@ -58,7 +58,7 @@ func UploadToDO(spaceURL, siteFolder, link string, svc *s3.S3) (string, error) {
 		fileName = getSoccerProFileName(link)
 	}
 	imagesPath := filepath.Join(imagesSiteFolder, fileName)
-	downloadFile(imagesPath, link)
+	downloadFile(config, imagesPath, link)
 	defer deleteFile(imagesPath)
 	if fileType := getFileContentType(imagesPath); strings.Split(fileType, "/")[0] != "image" {
 		return "", fmt.Errorf("cannot download file as image, get: %s", fileType)
@@ -66,7 +66,7 @@ func UploadToDO(spaceURL, siteFolder, link string, svc *s3.S3) (string, error) {
 	var imageURL string
 
 	uploadToDO(siteFolder, fileName, imagesPath, "efeed", svc)
-	imageURL = spaceURL + siteFolder + "/" + fileName
+	imageURL = config.DoSpaceURL + siteFolder + "/" + fileName
 	return imageURL, nil
 }
 

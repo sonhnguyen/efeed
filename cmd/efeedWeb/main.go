@@ -2,6 +2,7 @@ package main
 
 import (
 	"efeed"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,6 +33,8 @@ type efeedConfig struct {
 	DoBucket          string
 	DoSpaceURL        string
 	EnableCrawling    bool
+	EnableProxy       bool
+	ProxyURL          string
 }
 
 // App in main app
@@ -79,9 +82,12 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			Port:              viper.GetString("port"),
 			DatabaseURL:       viper.GetString("DATABASE_URL"),
 			EnableCrawling:    viper.GetBool("ENABLE_CRAWLING"),
+			EnableProxy:       viper.GetBool("ENABLE_PROXY"),
+			ProxyURL:          viper.GetString("PROXY_URL"),
 		}
 	} else {
 		enableCrawling, _ := strconv.ParseBool(os.Getenv("ENABLE_CRAWLING"))
+		enableProxy, _ := strconv.ParseBool(os.Getenv("ENABLE_PROXY"))
 		config = efeedConfig{
 			DoAccessKey:       os.Getenv("DO_ACCESS_KEY"),
 			DoSecretAccessKey: os.Getenv("DO_SECRET_ACCESS_KEY"),
@@ -91,6 +97,8 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			Port:              os.Getenv("PORT"),
 			DatabaseURL:       os.Getenv("DATABASE_URL"),
 			EnableCrawling:    enableCrawling,
+			EnableProxy:       enableProxy,
+			ProxyURL:          os.Getenv("PROXY_URL"),
 		}
 	}
 
@@ -150,6 +158,7 @@ func main() {
 	r.Get("/products/search", a.ProductSearchHandler())
 	r.Get("/", a.Index())
 	if a.config.EnableCrawling {
+		fmt.Println("RunCrawlerSoccerProAndSave")
 		go a.RunCrawlerSoccerProAndSave()
 		go a.RunCrawlerFanaticsAndSave()
 	}
