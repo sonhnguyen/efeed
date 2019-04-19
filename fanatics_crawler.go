@@ -39,9 +39,8 @@ const (
 func getRequest(config Config, link string, params FanaticAPIParams) (*http.Response, error) {
 	var netTransport = &http.Transport{}
 	if config.EnableProxy {
-		fmt.Println("proxy:", config.ProxyURL)
 		proxyURL, _ := url.Parse(config.ProxyURL)
-		netTransport.Proxy = http.ProxyURL(proxyURL)
+		netTransport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
 	}
 
 	client := &http.Client{
@@ -50,11 +49,10 @@ func getRequest(config Config, link string, params FanaticAPIParams) (*http.Resp
 	}
 
 	req, err := http.NewRequest("GET", link, nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-
 	if err != nil {
 		log.Print(err)
 	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
 
 	q := req.URL.Query()
 
@@ -73,7 +71,7 @@ func getRequest(config Config, link string, params FanaticAPIParams) (*http.Resp
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return resp, fmt.Errorf("error when getRequest %s", link)
+		return resp, fmt.Errorf("error when getRequest %s: %s", link, err)
 	}
 	return resp, nil
 }
