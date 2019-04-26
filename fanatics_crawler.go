@@ -4,13 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
-	"net/url"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -35,46 +31,6 @@ const (
 	SORT_OPTION      = "TopSellers"
 	PAGE_SIZE        = "96"
 )
-
-func getRequest(config Config, link string, params FanaticAPIParams) (*http.Response, error) {
-	var netTransport = &http.Transport{}
-	if config.EnableProxy {
-		proxyURL, _ := url.Parse(config.ProxyURL)
-		netTransport = &http.Transport{Proxy: http.ProxyURL(proxyURL)}
-	}
-
-	client := &http.Client{
-		Transport: netTransport,
-		Timeout:   time.Second * 10,
-	}
-
-	req, err := http.NewRequest("GET", link, nil)
-	if err != nil {
-		log.Print(err)
-	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-
-	q := req.URL.Query()
-
-	s := reflect.ValueOf(&params).Elem()
-	typeOfT := s.Type()
-
-	for i := 0; i < s.NumField(); i++ {
-
-		f := s.Field(i)
-		if f.String() != "" {
-			q.Add(typeOfT.Field(i).Tag.Get("json"), f.String())
-		}
-	}
-
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return resp, fmt.Errorf("error when getRequest %s: %s", link, err)
-	}
-	return resp, nil
-}
 
 func crawlProductDetailPageJSON(config Config, p Product) (Product, error) {
 	var sizes []string
