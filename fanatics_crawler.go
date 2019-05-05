@@ -211,7 +211,6 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, config Config)
 					fmt.Println("error when product crawlMainPage: ", err)
 					continue
 				}
-				fmt.Println("saving product: ", product.URL)
 				product.Tags = AppendIfMissing(product.Tags, category)
 				product.Tags = AppendIfMissing(product.Tags, team)
 				for _, link := range product.Images {
@@ -237,7 +236,6 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, config Config)
 					p.HostedImages = images
 					DB.Save(&p)
 				}
-				fmt.Println("skipping: ", product.URL)
 			}
 
 		}

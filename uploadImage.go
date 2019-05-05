@@ -16,7 +16,6 @@ import (
 
 func downloadFile(config Config, filepath string, url string) error {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Println("downloading: " + filepath)
 		// Get the data
 		resp, err := getRequest(config, url, FanaticAPIParams{})
 		if err != nil {
@@ -44,7 +43,6 @@ func deleteFile(path string) {
 
 // UploadToDO UploadToDO
 func UploadToDO(config Config, siteFolder, link string, svc *s3.S3) (string, error) {
-	fmt.Println("uploading image: ", link)
 	imagesFolder := filepath.Join(".", "images")
 	os.MkdirAll(imagesFolder, os.ModePerm)
 	imagesSiteFolder := filepath.Join(imagesFolder, siteFolder)
@@ -107,7 +105,6 @@ func getSoccerProFileName(link string) string {
 }
 
 func uploadToDO(siteFolder, fileName, path string, bucket string, svc *s3.S3) {
-	fmt.Println("uploading: ", path)
 	file, _ := os.Open(path)
 	defer file.Close()
 	fileInfo, _ := file.Stat()

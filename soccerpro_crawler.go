@@ -130,7 +130,6 @@ func RunCrawlerSoccerPro(config Config, svc *s3.S3) error {
 			if err != nil {
 				continue
 			}
-			fmt.Println("saving:", product.URL)
 			for _, link := range product.Images {
 				hostedImage, err := UploadToDO(config, "soccerpro", link, svc)
 				if err != nil {
@@ -154,7 +153,6 @@ func RunCrawlerSoccerPro(config Config, svc *s3.S3) error {
 				p.HostedImages = images
 				DB.Save(&p)
 			}
-			fmt.Println("skipping: ", product.URL)
 		}
 	}
 	return nil
