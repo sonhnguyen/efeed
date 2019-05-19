@@ -30,7 +30,7 @@ func getRequest(config Config, link string, params FanaticAPIParams) (*http.Resp
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-	fmt.Printf("Req: %s %s\n", req.Host, req.URL.Path)
+	fmt.Printf("Req: %s%s\n", req.Host, req.URL.Path)
 	resp, err := client.Do(req)
 	if err != nil {
 		return resp, fmt.Errorf("error when getRequest %s: %s", link, err)

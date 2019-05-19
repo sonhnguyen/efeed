@@ -1,7 +1,9 @@
 package efeed
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
@@ -11,6 +13,25 @@ import (
 const (
 	REVZILLA_BASE_URL = "https://www.revzilla.com"
 )
+
+type RevzillaData struct {
+	ProductID   string `json:"productID"`
+	Type        string `json:"@type"`
+	Description string `json:"description"`
+	Name        string `json:"name"`
+	Category    string `json:"category"`
+	Color       string `json:"color"`
+
+	Image struct {
+		ContentURL string `json:"contentUrl"`
+	} `json:"image"`
+	Offers struct {
+		Price float64 `json:"price"`
+	} `json:"offers"`
+	Brand struct {
+		BrandName string `json:"name"`
+	} `json:"brand"`
+}
 
 // RunCrawlerRevzilla RunCrawlerRevzilla
 func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
@@ -29,15 +50,54 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 		println(header)
 		println(e)
 	}
-
+	var productsURLs []Product
 	for _, pageURL := range productPages {
-		var productsURLs []Product
+
 		productsLinks, err := crawlProductLinks(config, pageURL)
+
 		if err != nil {
 			return fmt.Errorf("error when productsLinks crawlMainPage: %s", err)
 		}
 		productsURLs = append(productsURLs, productsLinks...)
 		//fmt.Printf("beginning crawling product details of team %s, number of products: %d \n", teamPageURL, len(productsURLs))
+
+	}
+
+	for _, product := range productsURLs {
+		var p Product
+		if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
+			_, err := crawlRevzillaProductDetails(config, product)
+			if err != nil {
+				fmt.Println("error when product crawlMainPage: ", err)
+				continue
+			}
+			//product.Tags = AppendIfMissing(product.Tags, category)
+			//product.Tags = AppendIfMissing(product.Tags, team)
+			/*for _, link := range product.Images {
+				hostedImage, err := UploadToDO(config, "fanatics", link, svc)
+				if err != nil {
+					fmt.Println("error when product hostedImage: ", err)
+					continue
+				}
+				product.HostedImages = append(product.HostedImages, hostedImage)
+			}*/
+			//DB.Create(&product)
+		} else {
+			/*if len(p.HostedImages) != len(p.Images) {
+				var images []string
+				for _, link := range p.Images {
+					hostedImage, err := UploadToDO(config, "fanatics", link, svc)
+					if err != nil {
+						fmt.Println("error when product hostedImage: ", err)
+						continue
+					}
+					images = append(images, hostedImage)
+				}
+				p.HostedImages = images
+				DB.Save(&p)
+			}*/
+			fmt.Println("Product already existed")
+		}
 
 	}
 
@@ -57,7 +117,7 @@ func ExtractProductsPage(doc *goquery.Document) map[string]string {
 }
 
 func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
-	var productLinks []Product
+
 	resp, err := getRequest(config, targetURL, FanaticAPIParams{SortOption: SORT_OPTION, PageSize: PAGE_SIZE, PageNumber: "1"})
 	if err != nil {
 		return []Product{}, fmt.Errorf("error when getRequest crawlProductLinks: %s", err)
@@ -81,7 +141,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		}
 	})
 
-	fmt.Printf("Total products at %s is %d\n", targetURL, totalProducts)
+	//fmt.Printf("Total products at %s is %d\n", targetURL, totalProducts)
 	numberTotalCrawl := PERCENT_CRAWLING * float64(totalProducts)
 	println(numberTotalCrawl)
 	productsURL := []Product{}
@@ -91,7 +151,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		for {
 			doc.Find(".product-index-results__product-tile-wrapper").Find("a").Each(func(i int, s *goquery.Selection) {
 				link, _ := s.Attr("href")
-				println(link)
+				//println(link)
 				productLink := Product{URL: REVZILLA_BASE_URL + link, Ranking: rank, Site: REVZILLA_BASE_URL}
 				//productLink.Tags = AppendIfMissing(productLink.Tags, gender)
 				productsURL = append(productsURL, productLink)
@@ -102,9 +162,9 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 				break
 			} else {
 				currentPageNum++
-				newURL := targetURL + "#page=" + strconv.Itoa(currentPageNum)
+				newURL := targetURL + "&page=" + strconv.Itoa(currentPageNum)
 				println(newURL)
-				resp, err = getRequest(config, newURL, FanaticAPIParams{})
+				resp, err = http.Get(newURL)
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when getRequest crawlProductsPage: %s, currentPageNum: %d", err, currentPageNum)
 				}
@@ -116,5 +176,57 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 			}
 		}
 	}
-	return productLinks, nil
+
+	return productsURL, nil
+}
+
+func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
+	/*var sizes []string
+	var colors []string
+	var details []string*/
+	resp, err := getRequest(config, p.URL, FanaticAPIParams{})
+	if err != nil {
+		return Product{}, fmt.Errorf("error when crawling: %s", err)
+	}
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return Product{}, fmt.Errorf("error when goquery: %s", err)
+	}
+	productDetails := make([]RevzillaData, 0)
+	count := 0
+	doc.Find("script").Each(func(i int, s *goquery.Selection) {
+
+		value, _ := s.Attr("type")
+		if value == "application/ld+json" {
+			count = count + 1
+			if count == 3 {
+				//fmt.Println(s.Text())
+				json.Unmarshal([]byte(s.Text()), &productDetails)
+			}
+
+		}
+	})
+	if productDetails != nil {
+		p.Name = productDetails[0].Name
+		p.Price = productDetails[0].Offers.Price
+		p.Description = productDetails[0].Description
+		p.ProductID = productDetails[0].ProductID
+		p.Category = productDetails[0].Category
+		p.Brand = productDetails[0].Brand.BrandName
+		colorSet := make(map[string]bool)
+		imageSet := make(map[string]bool)
+		for _, e := range productDetails {
+			if !colorSet[e.Color] {
+				colorSet[e.Color] = true
+				p.Colors = append(p.Colors, e.Color)
+			}
+
+			if !imageSet[e.Image.ContentURL] {
+				imageSet[e.Image.ContentURL] = true
+				p.Images = append(p.Images, e.Image.ContentURL)
+			}
+		}
+	}
+	fmt.Println(p)
+	return p, nil
 }
