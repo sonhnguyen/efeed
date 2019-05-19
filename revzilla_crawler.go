@@ -47,10 +47,6 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 	}
 
 	productPages := ExtractProductsPage(doc)
-	for header, e := range productPages {
-		println(header)
-		println(e)
-	}
 	var productsURLs []Product
 	for _, pageURL := range productPages {
 
@@ -98,8 +94,6 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 		}
 
 	}
-
-	println("Job Done!")
 	return nil
 }
 
@@ -133,7 +127,6 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 	})
 
 	numberTotalCrawl := PERCENT_CRAWLING * float64(totalProducts)
-	println(numberTotalCrawl)
 	productsURL := []Product{}
 	rank := 1
 	currentPageNum := 1
@@ -151,7 +144,6 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 			} else {
 				currentPageNum++
 				newURL := targetURL + "&page=" + strconv.Itoa(currentPageNum)
-				println(newURL)
 				resp, err = http.Get(newURL)
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when getRequest crawlProductsPage: %s, currentPageNum: %d", err, currentPageNum)
