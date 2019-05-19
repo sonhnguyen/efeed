@@ -70,7 +70,7 @@ func crawlProductDetailPageJSON(config Config, p Product) (Product, error) {
 		details = append(details, detail)
 	})
 
-	priceStr := doc.Find(".price-tag div").First().Text()
+	priceStr := doc.Find(".price-tag span").First().Text()
 	price, err := removeCharactersExceptNumbers(priceStr)
 	if err != nil {
 		return Product{}, fmt.Errorf("error when removeCharactersExceptNumbers: %s", err)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"efeed"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -157,17 +156,24 @@ func main() {
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/products/search", a.ProductSearchHandler())
 	r.Get("/", a.Index())
-	go a.RunCrawlerRevzillaAndSave()
 	if a.config.EnableCrawling {
-		fmt.Println("RunCrawlerSoccerProAndSave")
-		//go a.RunCrawlerSoccerProAndSave()
-		//go a.RunCrawlerFanaticsAndSave()
-		//go a.RunCrawlerRevzillaAndSave()
+		go a.RunCrawlerSoccerProAndSave()
+		go a.RunCrawlerFanaticsAndSave()
+		go a.RunCrawlerRevzillaAndSave()
 	}
 
 	c := cron.New()
 	err = c.AddFunc("@every 12h", func() {
 		err = a.RunCrawlerFanaticsAndSave()
+		if err != nil {
+			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
+		}
+	})
+	if err != nil {
+		log.Println("error on cron job ", err)
+	}
+	err = c.AddFunc("@every 12h", func() {
+		err = a.RunCrawlerRevzillaAndSave()
 		if err != nil {
 			log.Println("error running RunCrawlerOpenDotaTeamAndSave ", err)
 		}
