@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -26,7 +28,7 @@ type RevzillaData struct {
 		ContentURL string `json:"contentUrl"`
 	} `json:"image"`
 	Offers struct {
-		Price float64 `json:"price"`
+		Price string `json:"price"`
 	} `json:"offers"`
 	Brand struct {
 		BrandName string `json:"name"`
@@ -59,8 +61,7 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 			return fmt.Errorf("error when productsLinks crawlMainPage: %s", err)
 		}
 		productsURLs = append(productsURLs, productsLinks...)
-		//fmt.Printf("beginning crawling product details of team %s, number of products: %d \n", teamPageURL, len(productsURLs))
-
+		fmt.Printf("beginning crawling product details, number of products: %d \n", len(productsURLs))
 	}
 
 	for _, product := range productsURLs {
@@ -157,7 +158,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 				productsURL = append(productsURL, productLink)
 				rank++
 			})
-			fmt.Printf("done crawling: %s, page: %d\n", targetURL, currentPageNum)
+			fmt.Printf("done crawling: %s, page: %d, productsURL: %d \n", targetURL, currentPageNum, len(productsURL))
 			if float64(len(productsURL)) > numberTotalCrawl {
 				break
 			} else {
@@ -176,7 +177,6 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 			}
 		}
 	}
-
 	return productsURL, nil
 }
 
@@ -193,40 +193,47 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		return Product{}, fmt.Errorf("error when goquery: %s", err)
 	}
 	productDetails := make([]RevzillaData, 0)
-	count := 0
-	doc.Find("script").Each(func(i int, s *goquery.Selection) {
+	doc.Find("script[type='application/ld+json']").Last().Each(func(i int, s *goquery.Selection) {
+		json.Unmarshal([]byte(s.Text()), &productDetails)
+	})
+	fmt.Println("productDetails:", productDetails, len(productDetails))
 
-		value, _ := s.Attr("type")
-		if value == "application/ld+json" {
-			count = count + 1
-			if count == 3 {
-				//fmt.Println(s.Text())
-				json.Unmarshal([]byte(s.Text()), &productDetails)
-			}
+	if len(productDetails) != 0 {
+		p.Name = productDetails[0].Name
+		price, _ := strconv.ParseFloat(productDetails[0].Offers.Price, 64)
+		p.Price = price
+		p.Description = productDetails[0].Description
+		p.Details = append(p.Details, p.Description)
+		p.ProductID = productDetails[0].ProductID
+		categoryString := strings.Split(productDetails[0].Category, " > ")
+		p.Category = strings.Join(categoryString, ", ")
+		p.Brand = productDetails[0].Brand.BrandName
+		// colorSet := make(map[string]bool)
+		// imageSet := make(map[string]bool)
+		// for _, e := range productDetails {
+		// 	if !colorSet[e.Color] {
+		// 		colorSet[e.Color] = true
+		// 		p.Colors = append(p.Colors, e.Color)
+		// 	}
 
+		// 	if !imageSet[e.Image.ContentURL] {
+		// 		imageSet[e.Image.ContentURL] = true
+		// 		p.Images = append(p.Images, e.Image.ContentURL)
+		// 	}
+		// }
+	}
+	doc.Find("label.option-type__swatch").Each(func(i int, s *goquery.Selection) {
+		dataLabel, _ := s.Attr("data-label")
+		p.Colors = append(p.Colors, dataLabel)
+	})
+	doc.Find(".product-show-media-image__thumbnail meta").Each(func(i int, s *goquery.Selection) {
+		itemprop, _ := s.Attr("itemprop")
+		if itemprop == "contentUrl" {
+			content, _ := s.Attr("content")
+			p.Images = append(p.Images, content)
 		}
 	})
-	if productDetails != nil {
-		p.Name = productDetails[0].Name
-		p.Price = productDetails[0].Offers.Price
-		p.Description = productDetails[0].Description
-		p.ProductID = productDetails[0].ProductID
-		p.Category = productDetails[0].Category
-		p.Brand = productDetails[0].Brand.BrandName
-		colorSet := make(map[string]bool)
-		imageSet := make(map[string]bool)
-		for _, e := range productDetails {
-			if !colorSet[e.Color] {
-				colorSet[e.Color] = true
-				p.Colors = append(p.Colors, e.Color)
-			}
-
-			if !imageSet[e.Image.ContentURL] {
-				imageSet[e.Image.ContentURL] = true
-				p.Images = append(p.Images, e.Image.ContentURL)
-			}
-		}
-	}
-	fmt.Println(p)
+	
+	spew.Dump(p)
 	return p, nil
 }

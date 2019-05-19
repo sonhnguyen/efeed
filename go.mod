@@ -3,6 +3,7 @@ module efeed
 require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/aws/aws-sdk-go v1.19.11
+	github.com/davecgh/go-spew v1.1.1
 	github.com/emersion/go-jsonld v0.0.0-20170725170255-401cba701428
 	github.com/gojektech/heimdall v5.0.2+incompatible
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
