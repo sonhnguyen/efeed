@@ -54,6 +54,8 @@ func UploadToDO(config Config, siteFolder, link string, svc *s3.S3) (string, err
 		fileName = getFanaticsFileName(link)
 	case "soccerpro":
 		fileName = getSoccerProFileName(link)
+	case "revzilla":
+		fileName = getRevzillaFileName(link)
 	}
 	imagesPath := filepath.Join(imagesSiteFolder, fileName)
 	downloadFile(config, imagesPath, link)
@@ -99,6 +101,12 @@ func getFanaticsFileName(link string) string {
 }
 
 func getSoccerProFileName(link string) string {
+	linkParts := strings.Split(link, "/")
+	name := linkParts[len(linkParts)-1]
+	return name
+}
+
+func getRevzillaFileName(link string) string {
 	linkParts := strings.Split(link, "/")
 	name := linkParts[len(linkParts)-1]
 	return name
