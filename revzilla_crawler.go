@@ -67,27 +67,27 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 	for _, product := range productsURLs {
 		var p Product
 		if DB.Where(&Product{URL: product.URL}).First(&p).RecordNotFound() {
-			_, err := crawlRevzillaProductDetails(config, product)
+			product, err := crawlRevzillaProductDetails(config, product)
 			if err != nil {
 				fmt.Println("error when product crawlMainPage: ", err)
 				continue
 			}
 			//product.Tags = AppendIfMissing(product.Tags, category)
 			//product.Tags = AppendIfMissing(product.Tags, team)
-			/*for _, link := range product.Images {
-				hostedImage, err := UploadToDO(config, "fanatics", link, svc)
+			for _, link := range product.Images {
+				hostedImage, err := UploadToDO(config, "revzilla", link, svc)
 				if err != nil {
 					fmt.Println("error when product hostedImage: ", err)
 					continue
 				}
 				product.HostedImages = append(product.HostedImages, hostedImage)
-			}*/
-			//DB.Create(&product)
+			}
+			DB.Create(&product)
 		} else {
-			/*if len(p.HostedImages) != len(p.Images) {
+			if len(p.HostedImages) != len(p.Images) {
 				var images []string
 				for _, link := range p.Images {
-					hostedImage, err := UploadToDO(config, "fanatics", link, svc)
+					hostedImage, err := UploadToDO(config, "revzilla", link, svc)
 					if err != nil {
 						fmt.Println("error when product hostedImage: ", err)
 						continue
@@ -96,7 +96,7 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 				}
 				p.HostedImages = images
 				DB.Save(&p)
-			}*/
+			}
 			fmt.Println("Product already existed")
 		}
 
@@ -196,7 +196,6 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 	doc.Find("script[type='application/ld+json']").Last().Each(func(i int, s *goquery.Selection) {
 		json.Unmarshal([]byte(s.Text()), &productDetails)
 	})
-	fmt.Println("productDetails:", productDetails, len(productDetails))
 
 	if len(productDetails) != 0 {
 		p.Name = productDetails[0].Name
@@ -205,6 +204,7 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		p.Details = append(p.Details, p.Description)
 		p.ProductID = productDetails[0].ProductID
 		categoryString := strings.Split(productDetails[0].Category, " > ")
+		p.Tags = append(p.Tags, categoryString...)
 		p.Category = strings.Join(categoryString, ", ")
 		p.Brand = productDetails[0].Brand.BrandName
 		// colorSet := make(map[string]bool)
@@ -220,7 +220,6 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		// 		p.Images = append(p.Images, e.Image.ContentURL)
 		// 	}
 		// }
-		fmt.Println(p.Price)
 	}
 	doc.Find("label.option-type__swatch").Each(func(i int, s *goquery.Selection) {
 		dataLabel, _ := s.Attr("data-label")
@@ -233,7 +232,12 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 			p.Images = append(p.Images, content)
 		}
 	})
-
+	doc.Find("a.breadcrumbs__link").Each(func(i int, s *goquery.Selection) {
+		if s.Text()!="Home" {
+			p.Tags = append(p.Tags, s.Text())
+		}
+	})
+	
 	spew.Dump(p)
 	return p, nil
 }
