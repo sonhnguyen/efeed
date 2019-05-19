@@ -67,28 +67,28 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 				fmt.Println("error when product crawlMainPage: ", err)
 				continue
 			}
-			for _, link := range product.Images {
-				hostedImage, err := UploadToDO(config, "revzilla", link, svc)
-				if err != nil {
-					fmt.Println("error when product hostedImage: ", err)
-					continue
-				}
-				product.HostedImages = append(product.HostedImages, hostedImage)
-			}
+			// for _, link := range product.Images {
+			// 	hostedImage, err := UploadToDO(config, "revzilla", link, svc)
+			// 	if err != nil {
+			// 		fmt.Println("error when product hostedImage: ", err)
+			// 		continue
+			// 	}
+			// 	product.HostedImages = append(product.HostedImages, hostedImage)
+			// }
 			DB.Create(&product)
 		} else {
 			if len(p.HostedImages) != len(p.Images) {
-				var images []string
-				for _, link := range p.Images {
-					hostedImage, err := UploadToDO(config, "revzilla", link, svc)
-					if err != nil {
-						fmt.Println("error when product hostedImage: ", err)
-						continue
-					}
-					images = append(images, hostedImage)
-				}
-				p.HostedImages = images
-				DB.Save(&p)
+				// var images []string
+				// for _, link := range p.Images {
+				// 	hostedImage, err := UploadToDO(config, "revzilla", link, svc)
+				// 	if err != nil {
+				// 		fmt.Println("error when product hostedImage: ", err)
+				// 		continue
+				// 	}
+				// 	images = append(images, hostedImage)
+				// }
+				// p.HostedImages = images
+				// DB.Save(&p)
 			}
 			fmt.Println("Product already existed")
 		}
@@ -172,7 +172,6 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 	doc.Find("script[type='application/ld+json']").Last().Each(func(i int, s *goquery.Selection) {
 		json.Unmarshal([]byte(s.Text()), &productDetails)
 	})
-	//fmt.Println("productDetails:", productDetails, len(productDetails))
 
 	if len(productDetails) != 0 {
 		p.Name = productDetails[0].Name
@@ -184,22 +183,9 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		p.Tags = append(p.Tags, categoryString...)
 		p.Category = strings.Join(categoryString, ", ")
 		p.Brand = productDetails[0].Brand.BrandName
-		p.Type = productDetails[0].Type
-		// colorSet := make(map[string]bool)
-		// imageSet := make(map[string]bool)
-		// for _, e := range productDetails {
-		// 	if !colorSet[e.Color] {
-		// 		colorSet[e.Color] = true
-		// 		p.Colors = append(p.Colors, e.Color)
-		// 	}
-
-		// 	if !imageSet[e.Image.ContentURL] {
-		// 		imageSet[e.Image.ContentURL] = true
-		// 		p.Images = append(p.Images, e.Image.ContentURL)
-		// 	}
-		// }
-		//fmt.Println(productDetails[0])
 		p.Tags = AppendIfMissing(p.Tags, p.Brand)
+		p.Type = productDetails[0].Type
+		p.Tags = AppendIfMissing(p.Tags, p.Type)
 	}
 	doc.Find("label.option-type__swatch").Each(func(i int, s *goquery.Selection) {
 		dataLabel, _ := s.Attr("data-label")
