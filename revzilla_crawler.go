@@ -26,7 +26,7 @@ type RevzillaData struct {
 		ContentURL string `json:"contentUrl"`
 	} `json:"image"`
 	Offers struct {
-		Price float64 `json:"price"`
+		Price string `json:"price"`
 	} `json:"offers"`
 	Brand struct {
 		BrandName string `json:"name"`
@@ -208,7 +208,7 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 	})
 	if productDetails != nil {
 		p.Name = productDetails[0].Name
-		p.Price = productDetails[0].Offers.Price
+		p.Price, err = strconv.ParseFloat(productDetails[0].Offers.Price, 64)
 		p.Description = productDetails[0].Description
 		p.ProductID = productDetails[0].ProductID
 		p.Category = productDetails[0].Category
@@ -226,7 +226,8 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 				p.Images = append(p.Images, e.Image.ContentURL)
 			}
 		}
+		fmt.Println(p.Price)
 	}
-	fmt.Println(p)
+
 	return p, nil
 }
