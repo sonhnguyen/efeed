@@ -17,7 +17,7 @@ const (
 )
 
 type RevzillaData struct {
-	ProductID   string `json:"productID"`
+	ProductID   int    `json:"productID"`
 	Type        string `json:"@type"`
 	Description string `json:"description"`
 	Name        string `json:"name"`
@@ -196,17 +196,18 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 	doc.Find("script[type='application/ld+json']").Last().Each(func(i int, s *goquery.Selection) {
 		json.Unmarshal([]byte(s.Text()), &productDetails)
 	})
-	fmt.Println("productDetails:", productDetails, len(productDetails))
+	//fmt.Println("productDetails:", productDetails, len(productDetails))
 
 	if len(productDetails) != 0 {
 		p.Name = productDetails[0].Name
 		p.Price, err = strconv.ParseFloat(productDetails[0].Offers.Price, 64)
 		p.Description = productDetails[0].Description
 		p.Details = append(p.Details, p.Description)
-		p.ProductID = productDetails[0].ProductID
+		p.ProductID = strconv.Itoa(productDetails[0].ProductID)
 		categoryString := strings.Split(productDetails[0].Category, " > ")
 		p.Category = strings.Join(categoryString, ", ")
 		p.Brand = productDetails[0].Brand.BrandName
+		p.Type = productDetails[0].Type
 		// colorSet := make(map[string]bool)
 		// imageSet := make(map[string]bool)
 		// for _, e := range productDetails {
@@ -220,7 +221,7 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		// 		p.Images = append(p.Images, e.Image.ContentURL)
 		// 	}
 		// }
-		fmt.Println(p.Price)
+		//fmt.Println(productDetails[0])
 	}
 	doc.Find("label.option-type__swatch").Each(func(i int, s *goquery.Selection) {
 		dataLabel, _ := s.Attr("data-label")
