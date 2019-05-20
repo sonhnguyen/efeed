@@ -34,6 +34,7 @@ type efeedConfig struct {
 	EnableCrawling    bool
 	EnableProxy       bool
 	ProxyURL          string
+	EnableReuploadImage bool
 }
 
 // App in main app
@@ -83,10 +84,12 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			EnableCrawling:    viper.GetBool("ENABLE_CRAWLING"),
 			EnableProxy:       viper.GetBool("ENABLE_PROXY"),
 			ProxyURL:          viper.GetString("PROXY_URL"),
+			EnableReuploadImage: viper.GetBool("ENABLE_REUP_IMAGE"),
 		}
 	} else {
 		enableCrawling, _ := strconv.ParseBool(os.Getenv("ENABLE_CRAWLING"))
 		enableProxy, _ := strconv.ParseBool(os.Getenv("ENABLE_PROXY"))
+		enableReuploadImage, _ := strconv.ParseBool(os.Getenv("ENABLE_REUP_IMAGE"))
 		config = efeedConfig{
 			DoAccessKey:       os.Getenv("DO_ACCESS_KEY"),
 			DoSecretAccessKey: os.Getenv("DO_SECRET_ACCESS_KEY"),
@@ -98,6 +101,7 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 			EnableCrawling:    enableCrawling,
 			EnableProxy:       enableProxy,
 			ProxyURL:          os.Getenv("PROXY_URL"),
+			EnableReuploadImage: enableReuploadImage,
 		}
 	}
 

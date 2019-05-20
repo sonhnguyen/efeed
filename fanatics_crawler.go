@@ -213,28 +213,32 @@ func crawlMainPageAndSave(category, targetURL string, svc *s3.S3, config Config)
 				}
 				product.Tags = AppendIfMissing(product.Tags, category)
 				product.Tags = AppendIfMissing(product.Tags, team)
-				for _, link := range product.Images {
-					hostedImage, err := UploadToDO(config, "fanatics", link, svc)
-					if err != nil {
-						fmt.Println("error when product hostedImage: ", err)
-						continue
-					}
-					product.HostedImages = append(product.HostedImages, hostedImage)
-				}
-				DB.Create(&product)
-			} else {
-				if len(p.HostedImages) != len(p.Images) {
-					var images []string
-					for _, link := range p.Images {
+				if config.EnableReuploadImage {
+					for _, link := range product.Images {
 						hostedImage, err := UploadToDO(config, "fanatics", link, svc)
 						if err != nil {
 							fmt.Println("error when product hostedImage: ", err)
 							continue
 						}
-						images = append(images, hostedImage)
+						product.HostedImages = append(product.HostedImages, hostedImage)
 					}
-					p.HostedImages = images
-					DB.Save(&p)
+				}
+				DB.Create(&product)
+			} else {
+				if config.EnableReuploadImage {
+					if len(p.HostedImages) != len(p.Images) {
+						var images []string
+						for _, link := range p.Images {
+							hostedImage, err := UploadToDO(config, "fanatics", link, svc)
+							if err != nil {
+								fmt.Println("error when product hostedImage: ", err)
+								continue
+							}
+							images = append(images, hostedImage)
+						}
+						p.HostedImages = images
+						DB.Save(&p)
+					}
 				}
 			}
 

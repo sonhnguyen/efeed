@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	REVZILLA_PERCENT_CRAWLING = 1
 	REVZILLA_BASE_URL = "https://www.revzilla.com"
 )
 
@@ -67,32 +68,35 @@ func RunCrawlerRevzilla(config Config, svc *s3.S3) error {
 				fmt.Println("error when product crawlMainPage: ", err)
 				continue
 			}
-			// for _, link := range product.Images {
-			// 	hostedImage, err := UploadToDO(config, "revzilla", link, svc)
-			// 	if err != nil {
-			// 		fmt.Println("error when product hostedImage: ", err)
-			// 		continue
-			// 	}
-			// 	product.HostedImages = append(product.HostedImages, hostedImage)
-			// }
+			if config.EnableReuploadImage {
+				for _, link := range product.Images {
+					hostedImage, err := UploadToDO(config, "revzilla", link, svc)
+					if err != nil {
+						fmt.Println("error when product hostedImage: ", err)
+						continue
+					}
+					product.HostedImages = append(product.HostedImages, hostedImage)
+				}
+			}
 			DB.Create(&product)
 		} else {
-			if len(p.HostedImages) != len(p.Images) {
-				// var images []string
-				// for _, link := range p.Images {
-				// 	hostedImage, err := UploadToDO(config, "revzilla", link, svc)
-				// 	if err != nil {
-				// 		fmt.Println("error when product hostedImage: ", err)
-				// 		continue
-				// 	}
-				// 	images = append(images, hostedImage)
-				// }
-				// p.HostedImages = images
-				// DB.Save(&p)
+			if config.EnableReuploadImage {
+				if len(p.HostedImages) != len(p.Images) {
+					var images []string
+					for _, link := range p.Images {
+						hostedImage, err := UploadToDO(config, "revzilla", link, svc)
+						if err != nil {
+							fmt.Println("error when product hostedImage: ", err)
+							continue
+						}
+						images = append(images, hostedImage)
+					}
+					p.HostedImages = images
+					DB.Save(&p)
+				}
 			}
 			fmt.Println("Product already existed")
 		}
-
 	}
 	return nil
 }
@@ -126,7 +130,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		}
 	})
 
-	numberTotalCrawl := PERCENT_CRAWLING * float64(totalProducts)
+	numberTotalCrawl := REVZILLA_PERCENT_CRAWLING * float64(totalProducts)
 	productsURL := []Product{}
 	rank := 1
 	currentPageNum := 1

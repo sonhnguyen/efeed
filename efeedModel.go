@@ -5,6 +5,7 @@ import (
 	"github.com/lib/pq"
 )
 
+// ProductSearch ProductSearch
 type ProductSearch struct {
 	Name     string
 	Tags     []string
@@ -41,8 +42,10 @@ type FanaticAPIParams struct {
 	SortOption string `json:"sortOption"`
 }
 
+// Config config
 type Config struct {
 	EnableProxy bool
 	ProxyURL    string
 	DoSpaceURL  string
+	EnableReuploadImage bool
 }

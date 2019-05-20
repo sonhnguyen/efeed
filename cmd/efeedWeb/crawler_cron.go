@@ -7,7 +7,7 @@ import (
 
 // RunCrawlerFanaticsAndSave RunCrawlerFanaticsAndSave
 func (a *App) RunCrawlerFanaticsAndSave() error {
-	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL}
+	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL, EnableReuploadImage: a.config.EnableReuploadImage}
 
 	err := efeed.RunCrawlerFanatics(efeedConfig, a.svc)
 	if err != nil {
@@ -19,7 +19,7 @@ func (a *App) RunCrawlerFanaticsAndSave() error {
 
 // RunCrawlerSoccerProAndSave RunCrawlerSoccerProAndSave
 func (a *App) RunCrawlerSoccerProAndSave() error {
-	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL}
+	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL, EnableReuploadImage: a.config.EnableReuploadImage}
 
 	err := efeed.RunCrawlerSoccerPro(efeedConfig, a.svc)
 	if err != nil {
@@ -31,7 +31,7 @@ func (a *App) RunCrawlerSoccerProAndSave() error {
 
 //RunCrawlerSoccerProAndSave RunCrawlerSoccerProAndSave
 func (a *App) RunCrawlerRevzillaAndSave() error {
-	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL}
+	efeedConfig := efeed.Config{DoSpaceURL: a.config.DoSpaceURL, EnableProxy: a.config.EnableProxy, ProxyURL: a.config.ProxyURL, EnableReuploadImage: a.config.EnableReuploadImage}
 
 	err := efeed.RunCrawlerRevzilla(efeedConfig, a.svc)
 	if err != nil {
