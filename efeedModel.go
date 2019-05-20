@@ -20,7 +20,7 @@ type Product struct {
 	Category     string         `json:"category"`
 	Description  string         `json:"description"`
 	Details      pq.StringArray `gorm:"type:varchar(500)[]"`
-	Images       pq.StringArray `gorm:"type:varchar(500)[]" json:"image"`
+	Images       pq.StringArray `gorm:"type:varchar(1000)[]" json:"image"`
 	HostedImages pq.StringArray `gorm:"type:varchar(500)[]"`
 	Sizes        pq.StringArray `gorm:"type:varchar(64)[]"`
 	Colors       pq.StringArray `gorm:"type:varchar(64)[]"`
