@@ -179,6 +179,7 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 
 	if len(productDetails) != 0 {
 		p.Name = productDetails[0].Name
+		p.Tags = AppendIfMissing(p.Tags, p.Name)
 		p.Price, err = strconv.ParseFloat(productDetails[0].Offers.Price, 64)
 		p.Description = productDetails[0].Description
 		p.Details = append(p.Details, p.Description)
