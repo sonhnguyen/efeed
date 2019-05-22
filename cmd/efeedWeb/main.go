@@ -23,17 +23,17 @@ import (
 )
 
 type efeedConfig struct {
-	Port              string
-	DatabaseURL       string
-	IsDevelopment     bool
-	DoAccessKey       string
-	DoSecretAccessKey string
-	DoEndpoint        string
-	DoBucket          string
-	DoSpaceURL        string
-	EnableCrawling    bool
-	EnableProxy       bool
-	ProxyURL          string
+	Port                string
+	DatabaseURL         string
+	IsDevelopment       bool
+	DoAccessKey         string
+	DoSecretAccessKey   string
+	DoEndpoint          string
+	DoBucket            string
+	DoSpaceURL          string
+	EnableCrawling      bool
+	EnableProxy         bool
+	ProxyURL            string
 	EnableReuploadImage bool
 }
 
@@ -73,17 +73,17 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 
 	if viper.GetBool("isDevelopment") {
 		config = efeedConfig{
-			DoAccessKey:       viper.GetString("DO_ACCESS_KEY"),
-			DoSecretAccessKey: viper.GetString("DO_SECRET_ACCESS_KEY"),
-			DoEndpoint:        viper.GetString("DO_ENDPOINT"),
-			DoBucket:          viper.GetString("DO_BUCKET"),
-			DoSpaceURL:        viper.GetString("DO_SpaceURL"),
-			IsDevelopment:     viper.GetBool("isDevelopment"),
-			Port:              viper.GetString("port"),
-			DatabaseURL:       viper.GetString("DATABASE_URL"),
-			EnableCrawling:    viper.GetBool("ENABLE_CRAWLING"),
-			EnableProxy:       viper.GetBool("ENABLE_PROXY"),
-			ProxyURL:          viper.GetString("PROXY_URL"),
+			DoAccessKey:         viper.GetString("DO_ACCESS_KEY"),
+			DoSecretAccessKey:   viper.GetString("DO_SECRET_ACCESS_KEY"),
+			DoEndpoint:          viper.GetString("DO_ENDPOINT"),
+			DoBucket:            viper.GetString("DO_BUCKET"),
+			DoSpaceURL:          viper.GetString("DO_SpaceURL"),
+			IsDevelopment:       viper.GetBool("isDevelopment"),
+			Port:                viper.GetString("port"),
+			DatabaseURL:         viper.GetString("DATABASE_URL"),
+			EnableCrawling:      viper.GetBool("ENABLE_CRAWLING"),
+			EnableProxy:         viper.GetBool("ENABLE_PROXY"),
+			ProxyURL:            viper.GetString("PROXY_URL"),
 			EnableReuploadImage: viper.GetBool("ENABLE_REUP_IMAGE"),
 		}
 	} else {
@@ -91,16 +91,16 @@ func SetupApp(r *Router, logger appLogger, templateDirectoryPath string) *App {
 		enableProxy, _ := strconv.ParseBool(os.Getenv("ENABLE_PROXY"))
 		enableReuploadImage, _ := strconv.ParseBool(os.Getenv("ENABLE_REUP_IMAGE"))
 		config = efeedConfig{
-			DoAccessKey:       os.Getenv("DO_ACCESS_KEY"),
-			DoSecretAccessKey: os.Getenv("DO_SECRET_ACCESS_KEY"),
-			DoEndpoint:        os.Getenv("DO_ENDPOINT"),
-			DoBucket:          os.Getenv("DO_BUCKET"),
-			DoSpaceURL:        os.Getenv("DO_SpaceURL"),
-			Port:              os.Getenv("PORT"),
-			DatabaseURL:       os.Getenv("DATABASE_URL"),
-			EnableCrawling:    enableCrawling,
-			EnableProxy:       enableProxy,
-			ProxyURL:          os.Getenv("PROXY_URL"),
+			DoAccessKey:         os.Getenv("DO_ACCESS_KEY"),
+			DoSecretAccessKey:   os.Getenv("DO_SECRET_ACCESS_KEY"),
+			DoEndpoint:          os.Getenv("DO_ENDPOINT"),
+			DoBucket:            os.Getenv("DO_BUCKET"),
+			DoSpaceURL:          os.Getenv("DO_SpaceURL"),
+			Port:                os.Getenv("PORT"),
+			DatabaseURL:         os.Getenv("DATABASE_URL"),
+			EnableCrawling:      enableCrawling,
+			EnableProxy:         enableProxy,
+			ProxyURL:            os.Getenv("PROXY_URL"),
 			EnableReuploadImage: enableReuploadImage,
 		}
 	}
@@ -159,6 +159,7 @@ func main() {
 
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/products/search", a.ProductSearchHandler())
+	go a.RunCrawlerRevzillaAndSave()
 	r.Get("/", a.Index())
 	if a.config.EnableCrawling {
 		go a.RunCrawlerSoccerProAndSave()

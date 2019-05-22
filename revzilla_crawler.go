@@ -3,7 +3,6 @@ package efeed
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -13,7 +12,7 @@ import (
 
 const (
 	REVZILLA_PERCENT_CRAWLING = 1
-	REVZILLA_BASE_URL = "https://www.revzilla.com"
+	REVZILLA_BASE_URL         = "https://www.revzilla.com"
 )
 
 type RevzillaData struct {
@@ -131,6 +130,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 	})
 
 	numberTotalCrawl := REVZILLA_PERCENT_CRAWLING * float64(totalProducts)
+	println(totalProducts)
 	productsURL := []Product{}
 	rank := 1
 	currentPageNum := 1
@@ -138,22 +138,25 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		for {
 			doc.Find(".product-index-results__product-tile-wrapper").Find("a").Each(func(i int, s *goquery.Selection) {
 				link, _ := s.Attr("href")
+				//println(link)
 				productLink := Product{URL: REVZILLA_BASE_URL + link, Ranking: rank, Site: REVZILLA_BASE_URL}
 				productsURL = append(productsURL, productLink)
 				rank++
 			})
 			fmt.Printf("done crawling: %s, page: %d, productsURL: %d \n", targetURL, currentPageNum, len(productsURL))
-			if float64(len(productsURL)) > numberTotalCrawl {
+			if float64(len(productsURL)) >= numberTotalCrawl {
 				break
 			} else {
 				currentPageNum++
 				newURL := targetURL + "&page=" + strconv.Itoa(currentPageNum)
-				resp, err = http.Get(newURL)
+				//println(newURL)
+				resp, err = getRequest(config, newURL, FanaticAPIParams{})
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when getRequest crawlProductsPage: %s, currentPageNum: %d", err, currentPageNum)
 				}
 
 				doc, err = goquery.NewDocumentFromResponse(resp)
+				fmt.Println(doc)
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when goquery crawlProductsPage: %s", err)
 				}
