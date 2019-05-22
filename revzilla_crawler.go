@@ -207,5 +207,10 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 			p.Tags = AppendIfMissing(p.Tags, s.Text())
 		}
 	})
+	doc.Find(".option-type__select[data-option-type-name='Size'] > option").Each(func(i int, s *goquery.Selection) {
+		if i != 0 {
+			p.Sizes = AppendIfMissing(p.Sizes, s.Text())
+		}
+	})
 	return p, nil
 }
