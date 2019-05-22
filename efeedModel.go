@@ -20,17 +20,17 @@ type Product struct {
 	Brand        string         `json:"brand"`
 	Category     string         `json:"category"`
 	Description  string         `json:"description"`
-	Details      pq.StringArray `gorm:"type:varchar(1000)[]"`
-	Images       pq.StringArray `gorm:"type:varchar(1000)[]" json:"image"`
-	HostedImages pq.StringArray `gorm:"type:varchar(1000)[]"`
-	Sizes        pq.StringArray `gorm:"type:varchar(64)[]"`
-	Colors       pq.StringArray `gorm:"type:varchar(64)[]"`
+	Details      pq.StringArray `gorm:"type:varchar(1024)[]"`
+	Images       pq.StringArray `gorm:"type:varchar(1024)[]" json:"image"`
+	HostedImages pq.StringArray `gorm:"type:varchar(1024)[]"`
+	Sizes        pq.StringArray `gorm:"type:varchar(128)[]"`
+	Colors       pq.StringArray `gorm:"type:varchar(128)[]"`
 	Name         string         `json:"name"`
 	URL          string         `json:"url"`
 	Price        float64        `json:"price"`
 	Type         string         `json:"@type"`
 	ProductID    string         `json:"productID"`
-	Tags         pq.StringArray `gorm:"type:varchar(1000)[]"`
+	Tags         pq.StringArray `gorm:"type:varchar(1024)[]"`
 	Ranking      int
 	Site         string
 }
