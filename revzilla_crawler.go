@@ -130,7 +130,6 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 	})
 
 	numberTotalCrawl := REVZILLA_PERCENT_CRAWLING * float64(totalProducts)
-	println(totalProducts)
 	productsURL := []Product{}
 	rank := 1
 	currentPageNum := 1
@@ -138,7 +137,6 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		for {
 			doc.Find(".product-index-results__product-tile-wrapper").Find("a").Each(func(i int, s *goquery.Selection) {
 				link, _ := s.Attr("href")
-				//println(link)
 				productLink := Product{URL: REVZILLA_BASE_URL + link, Ranking: rank, Site: REVZILLA_BASE_URL}
 				productsURL = append(productsURL, productLink)
 				rank++
@@ -149,14 +147,12 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 			} else {
 				currentPageNum++
 				newURL := targetURL + "&page=" + strconv.Itoa(currentPageNum)
-				//println(newURL)
 				resp, err = getRequest(config, newURL, FanaticAPIParams{})
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when getRequest crawlProductsPage: %s, currentPageNum: %d", err, currentPageNum)
 				}
 
 				doc, err = goquery.NewDocumentFromResponse(resp)
-				fmt.Println(doc)
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when goquery crawlProductsPage: %s", err)
 				}
