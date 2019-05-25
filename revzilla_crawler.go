@@ -138,7 +138,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 		for {
 			doc.Find(".product-index-results__product-tile-wrapper").Find("a").Each(func(i int, s *goquery.Selection) {
 				link, _ := s.Attr("href")
-				//println(link)
+
 				productLink := Product{URL: REVZILLA_BASE_URL + link, Ranking: rank, Site: REVZILLA_BASE_URL}
 				productsURL = append(productsURL, productLink)
 				rank++
@@ -149,7 +149,7 @@ func crawlProductLinks(config Config, targetURL string) ([]Product, error) {
 			} else {
 				currentPageNum++
 				newURL := targetURL + "&page=" + strconv.Itoa(currentPageNum)
-				//println(newURL)
+
 				resp, err = getRequest(config, newURL, FanaticAPIParams{})
 				if err != nil {
 					return []Product{}, fmt.Errorf("error when getRequest crawlProductsPage: %s, currentPageNum: %d", err, currentPageNum)
@@ -181,6 +181,7 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 	})
 
 	if len(productDetails) != 0 {
+		//Find details in json
 		p.Name = productDetails[0].Name
 		p.Tags = AppendIfMissing(p.Tags, p.Name)
 		p.Price, err = strconv.ParseFloat(productDetails[0].Offers.Price, 64)
@@ -194,6 +195,31 @@ func crawlRevzillaProductDetails(config Config, p Product) (Product, error) {
 		p.Tags = AppendIfMissing(p.Tags, p.Brand)
 		p.Type = productDetails[0].Type
 		p.Tags = AppendIfMissing(p.Tags, p.Type)
+	} else {
+		// Find details in other elements
+		doc.Find("meta").Each(func(i int, s *goquery.Selection) {
+			op, _ := s.Attr("property")
+			con, _ := s.Attr("content")
+			name, _ := s.Attr("name")
+			if op == "og:upc" {
+				p.ProductID = con
+			} else if op == "og:image" {
+				p.Images = append(p.Images, con)
+			} else if op == "og:type" {
+				p.Type = con
+			} else if op == "og:description" {
+				p.Description = con
+			} else if op == "og:title" {
+				p.Name = con
+			}
+
+			if name == "sailthru.price" {
+				var price, _ = strconv.ParseFloat(con, 64)
+				p.Price = price / 100
+			}
+
+		})
+
 	}
 	doc.Find("label.option-type__swatch").Each(func(i int, s *goquery.Selection) {
 		dataLabel, _ := s.Attr("data-label")

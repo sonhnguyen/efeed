@@ -159,7 +159,10 @@ func main() {
 
 	r.Get("/export", a.Wrap(a.ExportCSVHandler()))
 	r.Get("/products/search", a.ProductSearchHandler())
+<<<<<<< HEAD
 
+=======
+>>>>>>> 347bfb65647d6c8c5dd924f7f1493cabd3b2d173
 	r.Get("/", a.Index())
 	if a.config.EnableCrawling {
 		go a.RunCrawlerSoccerProAndSave()
